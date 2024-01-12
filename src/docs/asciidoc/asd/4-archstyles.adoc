@@ -1,0 +1,11 @@
+== Archityecturele stijlen
+
+=== Monoliet
+
+==== Microkernel / plugins
+
+=== Shared Data
+
+=== Service Orientation
+
+=== Microservices
