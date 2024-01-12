@@ -8,3 +8,10 @@ Runnen met:
 ----
 mvn generate-resources
 ----
+
+Of met (sneller):
+
+[source,shell]
+----
+docker compose up ascii
+----
