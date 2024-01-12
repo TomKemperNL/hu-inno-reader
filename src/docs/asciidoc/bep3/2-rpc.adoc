@@ -1,0 +1,26 @@
+== Remote Procedure Calls
+
+=== Coupling
+
+==== Spatial & Temporal coupling
+
+Quadrant
+
+==== Overige vormen en Connascence
+
+Semantisch! Contract
+
+=== Multi-project-POMs
+
+==== Maven refresher
+
+==== Gespleten POMs, BOMs, en meer
+
+
+=== Stijlen RPC
+
+==== REST
+
+==== SOAP & GRPC
+
+==== GraphQL

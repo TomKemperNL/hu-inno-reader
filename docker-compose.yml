@@ -1,0 +1,7 @@
+version: "3.9"
+services: 
+  ascii:
+    image: asciidoctor/docker-asciidoctor
+    command: "asciidoctor-pdf inno.adoc"
+    volumes:
+      - "./src/docs/asciidoc:/documents"

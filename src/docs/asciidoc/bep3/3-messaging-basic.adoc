@@ -1,0 +1,31 @@
+== Messaging 1
+
+Communicatiewijzes:
+
+* Fire & Forget
+* Request / Reply
+* Publish / Subscribe
+
+Message soorten
+
+* Command
+* Query
+* Document
+* Event
+
+header vs body
+
+=== Asynchroniteit
+
+
+=== Queues
+
+=== RabbitMQ
+
+
+=== Delivery
+Exactly Once
+At-most-once
+At-least-once
+
+acks/nacks/amqp

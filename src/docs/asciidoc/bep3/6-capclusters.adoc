@@ -1,0 +1,11 @@
+== Gedistribueerde Systemen 
+
+=== CAP Theorem
+
+=== Clustering & Consensus
+
+==== Load balancing
+
+==== Configuration Management
+
+=== Blockchain

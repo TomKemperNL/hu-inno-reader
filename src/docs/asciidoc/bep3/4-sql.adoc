@@ -1,0 +1,13 @@
+== RDBMS & SQL
+
+=== Relationeel model
+
+==== ACID Transacties 
+
+=== Refresher SQL, DAOs
+
+=== Refresher JPA & ORM
+
+
+=== Evaluatie Relationele Databases
+

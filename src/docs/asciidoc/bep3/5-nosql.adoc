@@ -1,0 +1,13 @@
+== NoSQL
+
+=== K/V
+
+=== Object / Document
+
+=== Graph
+
+=== Wide-column
+
+//=== ?Time-Series?
+
+//=== ?Spatial?
