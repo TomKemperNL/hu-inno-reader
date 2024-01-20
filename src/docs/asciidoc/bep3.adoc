@@ -12,3 +12,4 @@ include::bep3/5-nosql.adoc[]
 include::bep3/6-capclusters.adoc[]
 include::bep3/7-messaging-intermediate.adoc[]
 include::bep3/8-observability.adoc[]
+

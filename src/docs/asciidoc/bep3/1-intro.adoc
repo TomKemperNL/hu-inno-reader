@@ -75,3 +75,6 @@ Fallacies:
 * Shared Database
 * RPC
 * Messaging
+
+eeeh, wat is hier aan de hand?
+

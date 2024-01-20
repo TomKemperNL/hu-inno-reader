@@ -1,6 +1,12 @@
 == Gedreven ontwerpen
 
+huh?
 
 === Data-driven Design
 
+a
+
 === Responsibility Driven Design
+
+b
+

@@ -24,3 +24,6 @@ Semantisch! Contract
 ==== SOAP & GRPC
 
 ==== GraphQL
+
+Hier staat ook wat
+

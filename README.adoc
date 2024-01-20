@@ -13,5 +13,14 @@ Of met (sneller):
 
 [source,shell]
 ----
-docker compose up ascii
+docker compose run --rm ascii
 ----
+
+
+== Gotchas
+
+ADoc heeft wat vreemde gotchas tov. markdown. 
+
+* Je moet elke file afsluiten met 2 newlines... anders gaat de title van de volgende pagina stuk?
+
+* Lege secties (van wat voor niveau dan ook) werken soms wel, soms niet...

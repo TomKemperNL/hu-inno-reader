@@ -1,21 +1,24 @@
 = Innovation SD Backend
-//:doctype: book
+:doctype: book
+:toc:
+:toclevels: 1
 Tom Kemper, en hopelijk nog veel meer
 
-:toc:
+
 
 include::bep3/1-intro.adoc[]
-include::asd/1-intro.adoc[]
-include::asd/2-add-diagramming.adoc[]
-include::asd/3-ddd-tactical.adoc[]
+// include::asd/1-asdintro.adoc[]
+// include::asd/2-add-diagramming.adoc[]
+// include::asd/3-ddd-tactical.adoc[]
 include::bep3/2-rpc.adoc[]
 include::bep3/3-messaging-basic.adoc[]
 include::bep3/4-sql.adoc[]
 include::bep3/5-nosql.adoc[]
-include::asd/4-archstyles.adoc[]
-include::asd/5-ddd-strategic.adoc[]
+// include::asd/4-archstyles.adoc[]
+// include::asd/5-ddd-strategic.adoc[]
 include::bep3/7-messaging-intermediate.adoc[]
 include::bep3/6-capclusters.adoc[]
-include::asd/6-enterprise-testing.adoc[]
-include::asd/7-evolution.adoc[]
+// include::asd/6-enterprise-testing.adoc[]
+// include::asd/7-evolution.adoc[]
 include::bep3/8-observability.adoc[]
+
