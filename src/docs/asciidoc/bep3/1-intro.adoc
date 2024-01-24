@@ -1,12 +1,6 @@
 == Gedistribueerde Systemen
 
-=== Leerdoel
-
-[quote]
-“De student kan systemen, en niet slechts applicaties ontwikkelen, die in z'n geheel een echt probleem oplossen.” 
-
-
-=== Inleiding
+=== Wat is het?
 
 [quote, Leslie Lamport]
 “A distributed system is one in which the failure of a computer you didn't even know existed can render your own computer unusable.” 
@@ -110,7 +104,19 @@ We hebben eerder gekeken naar grote gedistribueerde systemen. Maar als we goed k
 
 ==== Databases
 
+Op het moment dat we een externe database gebruiken voor onze webservice hebben we eigenlijk al een gedistribueerd systeem!
+
+Meestal is de verbinding tussen die twee systemen zo goed dat we er niet over na hoeven denken. Maar soms gaat die vlieger niet op. Bij grote hoeveelheden data, of bij grote hoeveelheden requests kun je toch merken dat er vertraging ontstaat bij de interactie met de database.
+
+Denk bijv. terug aan het _N+1_-probleem in een ORM. Dat is het probleem waarbij je entity hebt, met een referentie naar een collectie van andere entities, die op hun beurt een _lazy_ referentie hebben naar een derde entity. Een concreet voorbeeld is bijv. een _Klas_ met _Student_-objecten, en elk _Student_ object heeft een lazy referentie naar diens _Adres_. Als je zonder goed na te denken (_eager fetching_) een lijstje van adressen van een klas wilt teruggeven in een controller, dan zal jouw ORM framework per student een losse call naar de database doen om dat ene adres op te halen. Dat is op localhost al niet fijn, maar als je database enkele tientallen miliseconden verder weg staat ga je dat al heel snel merken. Latency is immers niet zero.
+
+Een ander geval waarin je gedistribueerde systemen problematiek tegenkomt is wanneer je _caching_ gebruikt. Stel je hebt een dure query die een paar seconden duurt, maar de informatie verandert niet heel vaak... Dan is het vaak slim om de resultaten een paar seconden of minuten in het geheugen te houden, en andere requests voor dezelfde informatie direct uit het geheugen te beantwoorden. Op dat moment zijn er twee kopieën van de data aanwezig in het systeem (de waarheid in de database, en jouw lokale gecachede kopie). Zorgen dat die twee niet te ver uit elkaar lopen kan snel vrij tricky worden, en de bandwith is niet infinite.
+
 ==== Doodnormale webapp
+
+Een doorsnee webapp zien we vaak niet als gedistribueerd systeem, maar de combinatie frontend en backend is er toch echt één. Meestal stuur je als frontend een pakketje html, javascript en css naar de client-computer, en die draait op diens systeem de geleverde code.
+
+Meestal hoef je daar niet te diep over na te denken, maar in sommige gevallen wordt dat ineens erg belangrijk. Stel je hebt bijv. gegevens en plaatjes in een beveiligde Cloud-opslag account staan... De meeste cloud-providers hebben een javascript API zodat je in javascript bij deze gegevens zou kunnen, maar dan is dat nog steeds geen goed idee! Want je zou in dit geval dan jouw inlog-gegevens moeten meesturen met de frontend-bundle, en hoe goet je dat ook probeert te verstoppen of te verbergen, die informatie gaat te achterhalen zijn... De network is immers niet secure.
 
 === Distribution Transparancy
 
@@ -140,5 +146,25 @@ Grofweg zijn er 4 stijlen te vinden waarop we applicaties met elkaar integreren 
 * RPC
 * Messaging
 
-eeeh, wat is hier aan de hand?
+File transfer gaat over het exporteren van grote hoeveelheden data (dumps) uit systeem A, om die vervolgens in systeem B in te laden. Dat kan geautomatiseerd, of met de hand (download, en vervolgens upload). Shared Database is de voor de hand liggende strategie om meerdere processen direct op dezelfde database aan te sluiten, dan is de integratie ook snel geregeld.
+
+File transfers zijn vaak nogal log, duren lang, en zijn nogal fragiel. Als er eeeergens iets mis gaat moet je vaak het hele proces annuleren, omdat je niet met zekerheid kan zeggen dat de rest van de data nog wel veilig geïmporteerd is.
+
+Een Shared Database klinkt als een goed idee, en voor hele kleine integraties kan het ook nog wel. In de praktijk leidt deze aanpak echter al snel tot frictie. We zijn gewend om onze database te kunnen updaten (kolommetje erbij, kolommetje renamen, etc.). Dit gaat enorm fout als er meerdere applicaties op dezelfde database draaien. Het is al lastig om dit allemaal goed te onthouden als je zelf als solo-developer al die applicaties onderhoudt, maar als de applicaties ook nog eens door verschillende teams van developers onderhouden worden, dan wordt deze aanpak al snel één grote chaos.
+
+**** 
+Jarenlang had één van onze klanten een systeem waarbij bepaalde rapporten die bij hen op een of ander dashboard getoond werden rechtstreeks op onze database gedraaid werden. Deze afspraak was lang voor mijn tijd gemaakt en kon, voor zover men zei, niet worden aangepast.
+
+Dit zorgde er voor dat grote delen van ons datamodel compleet vast zaten en niet verbeterd konden worden. Een groot probleem omdat we een multi-tenant (meerdere-klanten-op-1-systeem) applicatie hadden.
+
+Uiteindelijk werd het zo erg dat we maar de hele codebase geforked hebben zodat al onze andere klanten geen last hadden van deze deal. Jarenlang hebben we dus bij elke wijziging rekening moeten houden met 'kan het ook voor die ene klant?!'.
+
+Kortom, pas op met Shared Databases. Je hebt supersnel een eerste versie, en daarna vaak jarenlang ellende.
+
+-Tom
+****
+
+Een Remote Procedure Call (RPC) is een bericht dat een methode aanroept in een extern systeem. Dat is een hele gangbare en flexibele manier van integreren waar we in <<_remote_procedure_calls>> dieper op in zullen gaan.
+
+Tot slot kun je gebruik maken van asynchrone messaging systemen. Dat is een zeer flexibele, maar ook in eerste instantie lastige, manier van integreren. Hierbij leggen de verschillende onderdelen berichtjes voor elkaar klaar, die dan zo snel mogelijk opgepikt dienen te worden. Deze stijl van integratie is één van de grotere technische uitdagingen van deze cursus en zal uitgebreid worden behandeld in <<_messaging>> en <<_messaging_events>>.
 

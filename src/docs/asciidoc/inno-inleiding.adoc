@@ -1,0 +1,48 @@
+== Inleiding
+
+Deze reader hoort bij de cursussen Backend Programming 3 & Advanced Software Design van de Hogeschool Utrecht. Deze cursussen zijn samengevoegd tot de Kennisroute Software Development Backend als onderdeel van het Innovation semester.
+
+Naast deze reader bestaat de cursus ook uit hoorcolleges en werkcolleges, zijn er oefeningen te maken uit een Github repository en hoort er een (deel van) een gedistribueerd systeem ontwikkeld te worden.
+
+De reader is op dit moment zeer in ontwikkeling en bestaat voornamelijk uit een soort 'improvisatie hoorcollege, maar dan furieus typend'.
+
+De inhoud van de cursus is gebaseerd op een 4-tal leerdoelen. Deze behoeven enige toelichting.
+
+=== Leerdoel Gedistribueerde Systemen
+
+[quote]
+“De student kan systemen, en niet slechts applicaties ontwikkelen, die in z'n geheel een echt probleem oplossen.” 
+
+In jaar 2 hebben we geleerd hoe we een superstandaard CRUD API maken. Een heel groot deel van de Software Development wensen in het bedrijfsleven kunnen met deze kennis (en een beetje meer oefenen) prima opgelost worden.
+
+Soms echter loop je tegen grenzen aan. Dan is het goed om een idee te hebben van het verdere landschap. De leeruitkomst Gedistribueerde Systemen probeert je handvaten te geven waar je zelf verder zou kunnen gaan zoeken om op dat soort momenten je problemen op te lossen. Het vakgebied gedistribueerde systemen is namelijk vééél te groot om in de diepte in een (klein deel van) een semester te behandelen.
+
+De insteek is bij deze leeruitkomst in alle gevallen primair praktisch. Hoe krijg je zo snel mogelijk een werkend product in handen, zodat je zelf kan gaan experimenteren en doorleren.
+
+=== Leerdoel Gedreven Ontwerpen
+
+[quote]
+"De student kan gerichte, genuanceerde ontwerpen opstellen volgens moderne standaarden en gedachtegoeden.” 
+
+In jaar 2 hebben we allerlei standaarden geleerd, zoals een lagen-architectuur, of een componentenarchitectuur. We hebben geleerd hier (in voor- en tegenspoed) allerhande diagrammen van te maken.
+
+De steeds terugkerende vraag bij deze documentatie naar ons als docenten was: "Is dit nu goed?". Helaas sta je er over een paar jaar helemaal alleen voor.
+
+Het primaire doel van deze leeruitkomst is je handvaten geven om _zelf_ je koers te bepalen. Waarom heb je gekozen voor een bepaalde oplossing? Wat zijn de voordelen? Maar ook, wat zijn de nadelen? Zou je na een half jaar nog tevreden zijn met die afweging?
+
+=== Overige leerdoelen
+
+[quote]
+“De student voelt zich een professionele developer in de dop en kan dat onderbouwen met de juiste vaardigheden."
+
+Als één van de laatste 'vakken' in je opleiding is het ook belangrijk om stil te staan bij je rol als developer. De meesten van jullie gaan straks voor 20,30,40 uur in de week aan de slag als _Software Developer_. Als je iets zoveel uur in de week doet, dan gaat het (of je dat nou wil of niet) onderdeel uitmaken van je identiteit. Je bent straks één van ons!
+
+[quote]
+“De student is zich bewust van zijn SD werk binnen het bredere kader van ICT.”
+
+Wat houdt dat nou in? Hoe kunnen we er voor zorgen dat, mede dankzij jou, software als geheel gewoon een stukje beter draait in de wereld?
+
+Dit gaat in elk geval een zekere mate van bewustwording inhouden wat voor _andere_ richtingen, beroepen en vakgebieden met jouw werk in aanraking komen.
+
+Het gaat in elk geval niet over het reduceren van Software Development tot "Jira-ticket-erin, Software-eruit".
+
