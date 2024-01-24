@@ -1,0 +1,34 @@
+== Monolithische Architectuur
+
+Het woord monoliet betekent een steenblok dat uit één stuk steen bestaat. Een mono
+
+=== Attribute Driven Development (ADD 3.0)
+
+==== Drivers
+
+=== Diagrams
+
+==== Refresher Class Diagrams
+
+Onderdelen van de refresher:
+
+[TODO:1 plaatjes, hoe... asciidoc plugin? Of prerenderen?]
+
+==== Refresher Sequence Diagrams
+
+
+[TODO:1 plaatjes, hoe... asciidoc plugin? Of prerenderen?]
+
+==== Refresher Component Diagrams
+
+
+[TODO:1 plaatjes, hoe... asciidoc plugin? Of prerenderen?]
+
+==== Logical vs. Physical
+
+==== C4
+
+=== Design = Communicatie
+
+asdf
+
