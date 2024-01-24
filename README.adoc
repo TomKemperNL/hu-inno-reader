@@ -1,6 +1,6 @@
-= Test voor ADoc vs markdown
+= Reader Innovation Backend Software Development (Hogeschool Utrecht vak)
 
-Zie xref:src/docs/asciidoc/hello.adoc[hier]
+// Zie xref:src/docs/asciidoc/hello.adoc[hier]
 
 Runnen met:
 
@@ -15,6 +15,19 @@ Of met (sneller):
 ----
 docker compose run --rm ascii
 ----
+
+== Help!
+
+Het hele idee is om eeeerst een basale reader te maken (iets is beter dan niets), en daarna het langzaam beter te maken. (plaatjes, betere teksten, meer voorbeelden, code-voorbeelden, etc.)
+
+Dus de eerste versie is een soort offline college, zodat de slides wat leger kunnen (nu moeten ze dienst doen als presentatie en naslagwerk, en dat komt de les niet ten goede).
+
+In de docs markeer ik todos: ```[TODO:X]```, X is dan een getal dat de prio aangeeft. 
+
+1. Dit moet gefixt worden voordat het naar studenten kan. (fouten, en openstaande zaken in de stof)
+2. Dit zou eigenlijk echt gefixt moeten zijn voordat het naar studenten kan. (goede citaties zijn een voorbeeld hiervan)
+3. Dit gaan we pas fixen na versie 1. (bijv. extra voorbeelden)
+4. Waar hebben we het eigenlijk over? Dit gaat niet gebeuren, maar dat willen we onszelf nog niet zeggen.
 
 
 == Gotchas

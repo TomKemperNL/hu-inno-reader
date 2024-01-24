@@ -24,24 +24,23 @@ Deze gedistribueerde systemen hebben de verdiende reputatie om erg ingewikkeld t
 [quote, Tanenbaum & Van Steen (2017)]
 "A distributed system is a collection of independent computers that appears to its users as a single coherent system."
 
-
 ==== Satelieten
 
-[TODO: voorbeeld uit slides uitwerken]
+[TODO:3 voorbeeld uit slides uitwerken]
 
 ==== Whatsapp
 
-[TODO: voorbeeld uit slides uitwerken]
+[TODO:3 voorbeeld uit slides uitwerken]
 
 ==== Bitcoin
 
-[TODO: voorbeeld uit slides uitwerken]
+[TODO:3 voorbeeld uit slides uitwerken]
 
 === Waarom distribueren?
 
 Bovenstaande systemen zijn allemaal best intimiderend qua complexiteit. En tot nu toe werkte zo'n Spring @RestController toch prima? Waarom zou je jezelf dit aan willen doen?
 
-In de literatuur (TODO: ref) hanteert men vaak de volgende standaardredenen:
+In de literatuur (TODO:2 ref) hanteert men vaak de volgende standaardredenen:
 
 * Fysieke redenen
 * Performance / schaalbaarheid
@@ -51,7 +50,7 @@ In de literatuur (TODO: ref) hanteert men vaak de volgende standaardredenen:
 Allereerst Fysieke (of essentiele) redenen. Stel je neemt een systeem als Whatsapp, of een multi-player game als Counterstrike. Deze software systemen zijn per definitie gedistribueerd. Het zit in hun aard. Zonder het systeem uit meerdere processen (clients, servers) te laten bestaan kun je niet een bericht van een telefoon (client) via een server van Whatsapp naar andermans telefoon sturen. Evenzo kun je niet multiplayer iemand proberen neer te schieten als je niet alletwee achter je eigen computer zit (met evt. een centrale server ertussen).
 Een ander voorbeeld is als er echt fysieke redenen zijn om een computer op een bepaalde plek te zetten, zoals bijv. bij de satelieten, of bij een MRI-scanner in een ziekenhuis. Die scanner gaat nergens heen, dus je zult de computer naar de scanner moeten brengen (en die wil z'n informatie natuurlijk delen met de rest van het ziekenhuis).
 
-Twee computers kunnen meer rekenen dan één. Da's een waarheid als een koe. Er zijn zat problemen (TODO: voorbeelden, zoals eiwit vouwen, HADRON collider, maar ook wat moderners) die ook voor de grootste supercomputer te groot zijn. Dan kun je de last verdelen over meerdere computers, en heb je direct alle uitdagingen van een gedistribueerd systeem te pakken. Dichter bij huis kun je die performance-winst vaak ook wel vinden, want stel je wil bijv. je site op een Cloud-provider als AWS of Azure hosten, dan is het vaak goedkoper om twee kleinere machines te huren, dan om één grote te contracteren. 
+Twee computers kunnen meer rekenen dan één. Da's een waarheid als een koe. Er zijn zat problemen [TODO:3 voorbeelden, zoals eiwit vouwen, HADRON collider, maar ook wat moderners] die ook voor de grootste supercomputer te groot zijn. Dan kun je de last verdelen over meerdere computers, en heb je direct alle uitdagingen van een gedistribueerd systeem te pakken. Dichter bij huis kun je die performance-winst vaak ook wel vinden, want stel je wil bijv. je site op een Cloud-provider als AWS of Azure hosten, dan is het vaak goedkoper om twee kleinere machines te huren, dan om één grote te contracteren. 
 
 Wat mij betreft de meest interessante, en veelal de meest praktische reden om een systeem te distribueren is om de reliability (betrouwbaarheid) te vergroten. Als je systeem uit slechts één proces bestaat, en dat proces functioneert niet (de server is *down*, het process is gecrashed, het netwerk laat je er niet bij), dan doet niets in je systeem het. Als je je systeem uit meerdere onderdelen laat bestaan, dan kan je systeem 'een beetje stuk' zijn.
 
@@ -75,7 +74,7 @@ De stof van dit semester heeft me echt rust, en een veel fijnere baan gegeven.
 
 Tot slot hebben we nog de aanwezigheid van bestaande systemen die ons kunnen dwingen om de uitdagingen van een gedistribueerd systeem het hoofd te bieden. Op school heb je er niet zoveel mee te maken, maar in de meeste praktijk situaties heb je te maken met bestaande software systemen. De studentenlijst moet uit Osiris komen, en correct in Canvas geladen worden. Cijfers uit Testvision moeten teruggezet worden bij een assignment in Canvas, etc. (dit is allemaal wensdenken overigens, de HU is niet zo geautomatiseerd).
 
-[TODO: dit hoort hier niet]
+[TODO:1 dit hoort hier niet]
 Distribution Transparancy
 
 * Access
@@ -90,7 +89,7 @@ Distribution Transparancy
 [quote, Fowler (2003)]
 "First Law of Distributed Object Design: Don't distribute your objects!"
 
-Genoeg redenen om een systeem te distribueren dus. Helaas heeft het ook zeker nadelen. Een klassieke opsomming zijn de 8 fallaciesfootnote:[Het woord _fallacie_ is geen nederlands woord, we verbasteren het een beetje. Net zoals we van een _class_ kunnen _inheriten_.] (drogredenen) van gedistribueerde systemen [TODO: Ref Deutsch & Gossling]:
+Genoeg redenen om een systeem te distribueren dus. Helaas heeft het ook zeker nadelen. Een klassieke opsomming zijn de 8 fallaciesfootnote:[Het woord _fallacie_ is geen nederlands woord, we verbasteren het een beetje. Net zoals we van een _class_ kunnen _inheriten_.] (drogredenen) van gedistribueerde systemen [TODO:2 Ref Deutsch & Gossling, deze is lastig te vinden?]:
 
 * The network is reliable
 * Latency is zero
