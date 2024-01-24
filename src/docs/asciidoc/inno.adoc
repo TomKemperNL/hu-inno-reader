@@ -2,23 +2,38 @@
 :doctype: book
 :toc:
 :toclevels: 1
+:bibliography-database: referenties.bib
+:bibliography-hyperlinks: true
+:bibtex-style: apa
+
 Tom Kemper, en hopelijk nog veel meer
 
-
-
 include::bep3/1-intro.adoc[]
-// include::asd/1-asdintro.adoc[]
-// include::asd/2-add-diagramming.adoc[]
-// include::asd/3-ddd-tactical.adoc[]
+include::asd/1-asdintro.adoc[]
+include::asd/2-add-diagramming.adoc[]
+include::asd/3-ddd-tactical.adoc[]
 include::bep3/2-rpc.adoc[]
 include::bep3/3-messaging-basic.adoc[]
 include::bep3/4-sql.adoc[]
 include::bep3/5-nosql.adoc[]
-// include::asd/4-archstyles.adoc[]
-// include::asd/5-ddd-strategic.adoc[]
+include::asd/4-archstyles.adoc[]
+include::asd/5-ddd-strategic.adoc[]
 include::bep3/7-messaging-intermediate.adoc[]
 include::bep3/6-capclusters.adoc[]
-// include::asd/6-enterprise-testing.adoc[]
-// include::asd/7-evolution.adoc[]
+include::asd/6-enterprise-testing.adoc[]
+include::asd/7-evolution.adoc[]
 include::bep3/8-observability.adoc[]
+
+
+// Voorbeeldjes uit asciidoc bibtex docs... Vast later nodig
+// cite:[evans_domain-driven_2004]
+// cite:[Lane12a]+[Lane12b]
+// cite:[Anderson04, page=10]
+// cite:[Anderson04, chapter=10]
+// cite:[Anderson04, page=10, chapter=12]
+// cite:[Lane12a, page=42]+[Lane12b, opus=12]
+
+## Bibliography
+
+bibliography::[]
 

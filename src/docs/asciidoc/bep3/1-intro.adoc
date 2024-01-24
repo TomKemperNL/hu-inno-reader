@@ -57,6 +57,22 @@ Wat mij betreft de meest interessante, en veelal de meest praktische reden om ee
 
 Het klinkt raar om 'een beetje stuk' als iets goeds te zien, maar veelal zijn er oorzaken buiten je controle die er voor zorgen dat het maar wat handig is dat bepaalde delen van je systeem gewoon doordraaien, als er andere delen even uit liggen. Denk hierbij bijv. aan klassieke hardware-fouten (hardware gaat stuk, iemand trekt de stekker eruit), rampen (brand in het datacenter), of onschuldiger, een software update (dan moet het proces ook eventjes uit).
 
+****
+Persoonlijk was reliability voor mij een groot goed. Vroeger was ik verantwoordelijk voor een grote applicatie die uit 1 proces bestond, maar wel uit veel verschillende delen. Updates aan deze applicatie uitvoeren was erg lastig, want dan was alle functionaliteit van ons bedrijf onbereikbaar.
+
+Het gevolg was dat we 3-4 keer per jaar, midden in de nacht, een mega-release deden. Dat ging eigenlijk nooit goed en was altijd enorm stressen om alles voor 06:00 's ochtends weer 'goed genoeg' te krijgen. 
+
+Een ander gevolg was dat als 1 deel van de applicatie een foutje had (en bijv. de CPU van de server op 100% zette), dat de hele applicatie het niet meer deed.
+
+Deze twee zaken zorgden voor een bedrijfssfeer en cultuur waarbij er altijd stress en druk was, en vooral _schuld_ een grote rol speelde. Op het ergste moment zette een collega van mij alle instructies die hij van projectmanagers ontving in een git-repository, zodat hij achteraf kon bewijzen dat hij een bepaalde instructie echt ontvangen had (omdat er bij grote outages vaak geclaimed werd dat "De developers zomaar wat deden, waardoor het allemaal mis ging").
+
+Door de technieken van deze cursus te leren en toe te passen was ons bedrijf in ong. een jaar tijd vervormt van een hele nare plek om te werken, naar een hele prima plek. Door de applicatie in stukjes te hakken, high-availability patterns toe te passen, en vooral messaging te gebruiken konden we gewoon overdag onder werktijd deployen. En omdat het zo makkelijk was gingen we dat ook veel vaker doen (meestal elke twee weken, maar ook vaak zat vaker). En als er problemen op productie waren, dan konden we vaak dat stuk van de aplicatie gericht even 'offline voor maintenance' halen, en kon de rest doordraaien. Niet ideaal, maar _stukken_ beter dan het alternatief.
+
+De stof van dit semester heeft me echt rust, en een veel fijnere baan gegeven.
+
+-Tom
+****
+
 Tot slot hebben we nog de aanwezigheid van bestaande systemen die ons kunnen dwingen om de uitdagingen van een gedistribueerd systeem het hoofd te bieden. Op school heb je er niet zoveel mee te maken, maar in de meeste praktijk situaties heb je te maken met bestaande software systemen. De studentenlijst moet uit Osiris komen, en correct in Canvas geladen worden. Cijfers uit Testvision moeten teruggezet worden bij een assignment in Canvas, etc. (dit is allemaal wensdenken overigens, de HU is niet zo geautomatiseerd).
 
 [TODO: dit hoort hier niet]
@@ -98,6 +114,8 @@ We hebben eerder gekeken naar grote gedistribueerde systemen. Maar als we goed k
 === Distribution Transparancy
 
 === Integratiestijlen
+
+Grofweg zijn er 4 stijlen te vinden waarop we applicaties met elkaar integreren cite:[hohpe_enterprise_2012]
 
 * File Transfer
 * Shared Database

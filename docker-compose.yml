@@ -2,6 +2,6 @@ version: "3.9"
 services: 
   ascii:
     image: asciidoctor/docker-asciidoctor
-    command: "asciidoctor-pdf inno.adoc asd.adoc bep3.adoc"
+    command: "asciidoctor-pdf -r asciidoctor-bibtex inno.adoc asd.adoc bep3.adoc"
     volumes:
       - "./src/docs/asciidoc:/documents"
