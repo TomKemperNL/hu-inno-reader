@@ -1,18 +1,20 @@
-== Attribute Driven Development (ADD 3.0)
+== Monolithische Architectuur
 
-=== Drivers
+=== Attribute Driven Development (ADD 3.0)
 
-== Diagrams
+==== Drivers
 
-=== Refresher Class Diagrams
+=== Diagrams
 
-=== Refresher Sequence Diagrams
+==== Refresher Class Diagrams
 
-=== Refresher Component Diagrams
+==== Refresher Sequence Diagrams
+
+==== Refresher Component Diagrams
 
 ==== Logical vs. Physical
 
-=== C4
+==== C4
 
 === Design = Communicatie
 

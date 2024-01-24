@@ -74,16 +74,6 @@ De stof van dit semester heeft me echt rust, en een veel fijnere baan gegeven.
 
 Tot slot hebben we nog de aanwezigheid van bestaande systemen die ons kunnen dwingen om de uitdagingen van een gedistribueerd systeem het hoofd te bieden. Op school heb je er niet zoveel mee te maken, maar in de meeste praktijk situaties heb je te maken met bestaande software systemen. De studentenlijst moet uit Osiris komen, en correct in Canvas geladen worden. Cijfers uit Testvision moeten teruggezet worden bij een assignment in Canvas, etc. (dit is allemaal wensdenken overigens, de HU is niet zo geautomatiseerd).
 
-[TODO:1 dit hoort hier niet]
-Distribution Transparancy
-
-* Access
-* Location
-* Replication
-* Concurrency
-* Failure
-
-
 === Waarom niet?
 
 [quote, Fowler (2003)]
@@ -100,7 +90,19 @@ Genoeg redenen om een systeem te distribueren dus. Helaas heeft het ook zeker na
 * Transport cost is zero
 * The network is homogenous
 
+Al deze fallacies zijn makkelijk te negeren als developer. We zitten immers 90% van onze tijd lekker te klungelen op ```http://localhost:8080```. Als we communiceren met localhost (ook wel bekend als ip-adres 127.0.0.1) dan is het netwerk _wel_ reliable. Het is zeer onwaarschijnlijk dat je zogeheten loopback-adapter het niet doet.
 
+De latency, plat gezegd de vertraging tussen het versturen van pakketjes (_packets_) informatie en het aankomen er van, is via die loopback-adapter ook nagenoeg nul. En de bandbreedte, dus hoe groot de packets informatie mogen zijn en hoeveel data er in totaal verstuurd kan worden is praktisch oneindig. Kortom, op localhost hebben we met deze fallacies niet zoveel te maken.
+
+Het is daarom vaak een nare verrassing als je daar ineens _wel_ rekening mee moet houden. De eerste drie fallacies spreken voor zich, als je lange kabels hebt kan er van alles mee gebeuren, er kunnen zelfs haaien in bijten [TODO:3 ref haaien]. En als het niet jouw netwerk is, dan kun je er ook kosten voor moeten betalen (Cloud providers zoals Azure en AWS kunnen je hier vaak met een onverwacht gepeperde rekening presenteren).
+
+Als je niet mag aannemen dat het netwerk veilig (_secure_) is, dan betekent dat dat je allerlei extra infrastructuur zult moeten hanteren om te zorgen dat je toch veilig tussen verschillende computers/applicaties/processen kan communiceren. TLS (Transport Layer Security) is een veelgebruikte oplossing hiervoor. Dit ken je waarschijnlijk zelf als het verschil tussen http en http&*S*.
+
+De aanname dat er één administrator is (vaak gekoppeld met de aanname dat jij dat bent, aangezien jij immers de baas bent van je eigen localhost-omgeving) zorgt vaak voor onverwachte problemen. Het kan bijv. een stuk langer duren voordat je überhaupt toegang krijgt tot je productie-database, of je kan er ineens niet meer bij omdat je een mailtje over het hoofd hebt gezien. Anderzijd s kan het ook zo zijn dat een ander systeem dat jij nodig hebt (bijv. een gedeeld inlog-systeem) besluit een update uit te voeren. Dan heb je ineens twee problemen: tijdens de update heb je een overduidelijk probleem, want het andere systeem ligt eruit, maar je moet ook uitzoeken of je na de update nog wel correct met het systeem kan praten!
+
+Tot slot hebben we nog twee stukjes yargon. De aanname dat de topologie niet verandert betekent dat de _abstracte vorm_ van het netwerk niet verandert. Stel je hebt een kantoornetwerk, waarbij elke computer verbonden is met een switch, en die switch gaat via een router naar buiten. Als we dan al die computers een beetje gaan verschuiven verandert het netwerk dan welliswaar van vorm (alle computers staan op een andere plek), maar niet van abstracte vorm (het zijn nog steeds een ster van computers aan een switch, die vanuit daar naar een router gaan). In internet-systemen kom je dit vaak tegen als lange-afstand-routes door bijv. BGP [TODO:2 ref BGP] veranderen. 
+
+De laatste is de aanname dat het netwerk _homogeen_ is, oftewel dat het uit dezelfde soort apparaten bestaat. Tussen jouw systemen staan vaak allerlei andere apparaten, en je bent vaak een beetje afhankelijk van wat voor soort protocollen, dataformaten en groottes deze apparaten ondersteunen. Een voorbeeld hiervan is de enorme vertraging die de overstap van IPv4 naar IPv6 op is gelopen [TODO:3 IPv4-IPv6 link]. Dichter bij huis was (is?) er een reverse-proxy ergens voor Canvas die Cookie-headers afkapt, sommige studenten (die bijv. bij veel verschillende *.hu.nl sites waren ingelogd) konden soms (want het verkeer ging niet altijd over die server) niet inloggen bij Canvas.
 
 === Voorbeelden
 
@@ -111,6 +113,23 @@ We hebben eerder gekeken naar grote gedistribueerde systemen. Maar als we goed k
 ==== Doodnormale webapp
 
 === Distribution Transparancy
+
+Waarom denken we bij dat soort kleinere situaties vaak niet aan gedistribueerde systemen? Dat komt omdat hun gedistribueerde aard goed verstopt is! Als je online aan het shoppen bent, dan voelt de frontend echt als onderdeel van de winkel (terwijl het toch echt op jouw pc draait), en je denkt niet aan hun database, of webserver, of loadbalancer, of inlogsysteem: er is gewoon _de winkel_.
+
+Dit principe, dat je niet doorhebt dat er eigenlijk vele verschillende processen een rol spelen noemen we met een chique woord _Distribution Transparancy_ cite:[tanenbaum_distributed_2017]. Deze term is een beetje verwarrend, want Distribution Transparancy is behaald als men _niet_ kan zien dat het systeem gedistribueerd isfootnote:[Ik vind dit verwarrend, want ik zou zeggen dat als de distributie transparant is, dat je dan _juist_ goed kan zien hoe de verschillende onderdelen in elkaar zitten. Maar dit is dus *niet* hoe deze term in de praktijk gebruikt wordt. -Tom].
+
+Uiteraard is deze transparantie nooit volmaakt, en kan die op verschillende wijzes complexiteit verbergen, of juist laten doorschemeren.
+
+* Access Transparancy:
+  Hiermee bedoelen we dat het niet precies duidelijk is hoe we bij bepaalde informatie komen. Krijgen we de informatie direct? Of zit er een tussenpersoon tussen? Als jij naar een website gaat zit daar vaak een https://www.x.y adres voor, maar het zou maar zo kunnen dat de ene helft van de website van een web-winkel-server komt, terwijl bijv. de nieuwspagina van een CMS-server komt, en de bedrijfsinformatie op een derde plek gehost wordt. Door een slimme Gateway/API-facade/etc. er voor te zetten merk je dit niet. Totdat ineens de ene helft van de site offline is, en de andere niet. Dan wordt duidelijk dat er altijd al meerdere delen waren.
+* Location Transparancy:
+  Er zijn vele truken om te voorkomen dat men exact weet _waar_ een bepaalde service gehost wordt. Neem bijv. urls. Als we bijv. kijken waar https://utrecht.nl gehost wordt, dan is het een redelijke aanname dat dit in Utrecht is, en inderdaad, dat blijkt (op moment van schrijven tenminste) te kloppenfootnote:[Het commando 'ping -4 utrecht.nl' geeft je een ip adres waar je de locatie van kan opzoeken]. Dan zou het ook logisch zijn om aan te nemen dat https://hu.nl ook in Utrecht te vinden is. Maar nee, de Hogeschool Utrecht site woont in een datacenter in Amsterdam. De exacte locatie is dus niet te zien, een vorm van transparantie.
+* Replication Transparancy:
+  Grote websites krijgen vaak zoveel bezoekers dat één server het niet allemaal aan kan. Performance was immers een reden om een gedistribueerd systeem te bouwen. Desalniettemin kun je als het goed is niet zien dat er meerdere servers gebruikt worden. Wie weet hoeveel servers er achter https://hu.nl schuilen? Een genantfootnote:[Uiteraard heb ik exact dit soort zaken met schaamte in productie gedraaid... Het was opvallend hoe ontzettend weinig dit uitmaakt voor veel non-technische mensen. Ik durfde me echter niet meer op Developer-meetups te vertonen! -Tom] alternatief zou bijv. zijn als er op drukke Open Dagen sommige opleidingen zouden draaien op https://opendag1.hu.nl/ICT en anderen op https://opendag2.hu.nl/tandheelkunde.
+* Concurrency Transparancy:
+  Als ik op een grote internet webwinkel zit te browsen achter mijn computer, dan _voelt_ het alsof ik de enige klant in de winkel ben. Ik zie in elk geval geen andere klanten! Dus het lijkt alsof die server alleen met mij bezig is, wat natuurlijk een enorme eer is. In werkelijkheid is die server met tichduizend mensen tegelijk bezig. Allemaal onzichtbaar (transparant) voor mij.
+* Failure Transparancy:
+  Je hebt vast wel eens meegemaakt dat je ineens, in plaats van een mooie pagina, geconfronteerd wordt met een kale HTML pagina, waarop ineens staat dat er geen connectie gemaakt kan worden met database XYZ. Meestal ook nog met een mooie stacktrace, en een hint wat voor server/framework/database gebruikt wordt. Vervolgens haal je je schouders op, en druk je op F5 om te refreshen, en voilá alles werkt weer. In dat geval ben je even mooi met je neus op de feiten gedrukt dat deze site een aparte database gebruikte, dat er een verschil tussen backend-en-frontend framework is, en meer van zulks.
 
 === Integratiestijlen
 
