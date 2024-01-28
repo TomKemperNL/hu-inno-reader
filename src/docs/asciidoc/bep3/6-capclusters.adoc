@@ -4,10 +4,14 @@
 
 === Clustering & Consensus
 
+[#availability]
 ==== Load balancing
+
+==== Service Discovery
 
 ==== Configuration Management
 
 === Blockchain
-asdf
+
+// [TODO:4 Willen we überhaupt nog dit onderwerp aansnijden? De hype voelt wel voorbij]
 

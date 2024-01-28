@@ -2,10 +2,6 @@
 
 Het woord monoliet betekent een steenblok dat uit één stuk steen bestaat. Een mono
 
-=== Attribute Driven Development (ADD 3.0)
-
-==== Drivers
-
 === Diagrams
 
 ==== Refresher Class Diagrams

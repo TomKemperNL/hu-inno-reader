@@ -1,14 +1,105 @@
 == Remote Procedure Calls
 
-=== Coupling
+Remote Procedure Calls zijn de meest klassieke vorm van communicatie tussen systemen. Zeker in object-georiënteerde talen is het al sinds de jaren 90 (CORBA, later SOAP etc. [TODO:2 ref]) een wijd-verspreide stijl van communicatie.
 
-==== Spatial & Temporal coupling
+[source, java]
+----
+//PaymentService is in dit geval een Interface
+private PaymentService paymentService;
 
-Quadrant
+public void generatePayment(Order o){
+    //allerhande code om van Order naar betaling te komen...
+    PaymentLink link = paymentService.createPaymentLink(o.getPaymentDetails());
+    //en de rest van je applicatielogica
+}
 
-==== Overige vormen en Connascence
+----
 
-Semantisch! Contract
+Van OOP hebben we geleerd dat we hele verschillende implementaties kunnen schrijven voor die payment-service. Wie weet is die payment-link zo simpel dat we 'm kunnen genereren door puur een String op een bepaalde manier te formatten? Dan kunnen we de hele operatie binnen ons proces uitvoeren. Dit noemen we dan een _lokale_ service aanroep.
+Bij veel betalings-services moet je zo'n betaling echter eerst expliciet aanmelden, dus dan stuur je een Request naar hun service, en met de benodigde informatie in de Response om de link te genereren: Het mooie van deze interface is dat we dat verschil nu niet zien! Dit noemen we dan een _remote_ service aanroep.
+
+Dit is de kerngedachte van een Remote-Procedure integratiestijl. We kunnen procedures (of methods, of functies, we gebruiken de term niet heel precies) aanroepen in andere services, _net zoals_ we dat voor lokale services doen.
+
+=== Nadelen RPC
+
+Zoals opgemerkt is het grote voordeel van een RPC interface dat je het verschil tussen een lokale en een remote aanroep niet kan zien. Het grootste nadeel van een RPC interface is echter dat we dat verschil nu niet kunnen zien!
+
+[quote, Fowler (2003)]
+"First Law of Distributed Object Design: Don't distribute your objects!"
+
+Als we terugdenken aan de Fallacies of Distributed Systems (<<fallacies>>) willen we misschien juist weten of er hier een remote-procedure call achter schuil gaat!
+
+[source, java]
+----
+//Dit is waarschijnlijk wel redelijk:
+Order order = //... ergens komt een order vandaan.
+PaymentLink link = paymentService.createPaymentLink(order.getPaymentDetails());
+
+//Dit is echter vragen om problemen!:
+List<Order> orders = //... ergens komt een lijst van 100+ orders vandaan.
+List<PaymentLink> links = new ArrayList<>();
+for(Order o: orders){
+    PaymentLink link = paymentService.createPaymentLink(o.getPaymentDetails());
+    links.add(link);
+}
+
+----
+
+Het probleem hier is dat in de for-loop er 100+ keer een los netwerkbericht naar een externe service wordt gestuurd. Dit is heel traag en foutgevoelig. En het vervelende is, je _ziet_ het niet als programmeur. We hebben een te sterke abstractie gemaakt, het verbergt teveel!
+
+In recente jaren is het steeds gebruikelijker aan het worden om dit soort interfaces te wrappen in een extra laagje dat aangeeft dat het mogelijk lang duurt om een reactie te krijgen. Zo'n extra laagje noemen we in Javascript een Promise, in C# een Task, in Python een Future, en in Java een Monofootnote:[Java heeft meerdere populaire libraries, zoals Project Reactor, of RXJava. Het heet overal net iets anders. Spring gebruikt Reactor, en die noemt het een Mono.]. Er zijn kleine verschillen tussen de talen en libraries, maar in de basis is het idee hetzelfde.
+
+Een ander nadeel is dat RPC bijna altijd gekoppeld is aan de communicatiewijze (Zie <<Communicatiewijzes>>) Request-Reply. Dit betekent dat het alle fragiliteit van die communicatiewijze heeft. Ook bij methodes die niets returnen (_void_) die technisch gezien via een Fire & Forget wijze gecommuniceerd zouden kunnen worden heeft het onderliggende protocol vaak nog een lege success-Response. Zodoende is het belangrijk om voor kritieke RPC-paden in je applicatie een goede High-Availibility oplossing te overwegen (<<availability>> zullen we later behandelen), of anderzijds een tijdelijke onderbreking te kunnen accepteren.
+
+Al met al is RPC een veelvoorkomende integratiestijl en van de methoden die we in deze cursus behandelen de meest intuïtieve. Er zijn nadelen, zowel qua API als qua implementatie, maar die kunnen enigszins gemitigeerd worden.
+
+=== Stijlen RPC
+
+==== REST
+
+Tot nog toe hebben we vooral webservices gemaakt die door een client-side stuk javascript, vaak door middel van _fetches_ aangeroepen wordt. Zodoende hebben we vooral REST-APIs voor Postman en onze eigen frontends gemaakt.
+
+Er is natuurlijk geen enkele reden waarom we niet vanuit andere talen en contexten (zoals onze eigen backends) ook calls naar andere REST-services zouden kunnen maken. In jaar 1 moest je bijv. in Python een weer-API uitvragenfootnote:[Of zoiets, de opdracht wil nog wel eens veranderen].
+
+REST als een vorm van RPC zien is helaas een beetje verwarrend. Bij REST willen we een Resource-Oriented API ontwikkelen, dat betekent dat we de Resources (de "dingen") leidend willen laten zijn. Dit zorgt voor die standaard URL verdelingen die we eerder hebben gezien:
+
+[cols="1,1"]
+|===
+|_GET_ /persons
+|vraagt een lijst van alle personen
+
+|_GET_ /persons/{id}
+|vraagt een enkel persoon op, namelijk die met een bepaald {id}
+
+|_POST_ /persons
+|voeg een persoon toe aan de lijst, met de details in de request body
+
+|_DELETE_ /persons/{id}
+|verwijdert een enkel persoon
+
+|_PUT_ /persons/{id}
+|vervangt de gegevens van een persoon (strict genomen in z'n geheel)
+
+|_PATCH_ /persons/{id}
+|doet een partiële update van een bepaald persoon
+
+|===
+
+Deze stijl van ontwikkelen, waarbij de 'dingen' (resources) centraal staan, en de HTTP-verbs (GET,PUT, POST, etc.) de mogelijke handelingen voorstellen is relatief flexibel en eenvoudig te doorgronden.
+
+Dit kun je contrasteren met een RPC-API, waarbij je bijv. een _POST_ doet naar _/persons/maaknieuw_, of _/updateperson_, of desnoods zoiets als _/api_, waarbij dan de requestbody zoiets bevat als _{"method": "updateperson"}_. Deze stijl van API noemt men een RPC-API, omdat je feitelijk ook qua contractstijl expliciet een bepaalde method (als synoniem ) in de andere service aanroept. 
+
+Het is onfortuinlijk dat we dus twee verschillende betekenissen van het woord RPC door elkaar gebruiken. In het oude geval was RPC het tegenovergestelde van de Resource-Oriented-stijl van REST (misschien was Procedure-Oriented een mooier woord geweest). In dit vak is RPC als communicatiewijze een alternatief van Messaging, we doelen daarmee dus op een process waarbij een call naar een REST service wordt ge-encapsuleerd als (bijna?) een lokale call.
+
+
+==== SOAP & GRPC
+
+==== GraphQL
+
+Hier staat ook wat
+
+
+
 
 === Multi-project-POMs
 
@@ -16,14 +107,4 @@ Semantisch! Contract
 
 ==== Gespleten POMs, BOMs, en meer
 
-
-=== Stijlen RPC
-
-==== REST
-
-==== SOAP & GRPC
-
-==== GraphQL
-
-Hier staat ook wat
 

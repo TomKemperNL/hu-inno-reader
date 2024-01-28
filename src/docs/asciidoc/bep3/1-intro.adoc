@@ -68,10 +68,8 @@ De stof van dit semester heeft me echt rust, en een veel fijnere baan gegeven.
 
 Tot slot hebben we nog de aanwezigheid van bestaande systemen die ons kunnen dwingen om de uitdagingen van een gedistribueerd systeem het hoofd te bieden. Op school heb je er niet zoveel mee te maken, maar in de meeste praktijk situaties heb je te maken met bestaande software systemen. De studentenlijst moet uit Osiris komen, en correct in Canvas geladen worden. Cijfers uit Testvision moeten teruggezet worden bij een assignment in Canvas, etc. (dit is allemaal wensdenken overigens, de HU is niet zo geautomatiseerd).
 
+[#fallacies]
 === Waarom niet?
-
-[quote, Fowler (2003)]
-"First Law of Distributed Object Design: Don't distribute your objects!"
 
 Genoeg redenen om een systeem te distribueren dus. Helaas heeft het ook zeker nadelen. Een klassieke opsomming zijn de 8 fallaciesfootnote:[Het woord _fallacie_ is geen nederlands woord, we verbasteren het een beetje. Net zoals we van een _class_ kunnen _inheriten_.] (drogredenen) van gedistribueerde systemen [TODO:2 Ref Deutsch & Gossling, deze is lastig te vinden?]:
 
@@ -167,4 +165,22 @@ Kortom, pas op met Shared Databases. Je hebt supersnel een eerste versie, en daa
 Een Remote Procedure Call (RPC) is een bericht dat een methode aanroept in een extern systeem. Dat is een hele gangbare en flexibele manier van integreren waar we in <<_remote_procedure_calls>> dieper op in zullen gaan.
 
 Tot slot kun je gebruik maken van asynchrone messaging systemen. Dat is een zeer flexibele, maar ook in eerste instantie lastige, manier van integreren. Hierbij leggen de verschillende onderdelen berichtjes voor elkaar klaar, die dan zo snel mogelijk opgepikt dienen te worden. Deze stijl van integratie is één van de grotere technische uitdagingen van deze cursus en zal uitgebreid worden behandeld in <<_messaging>> en <<_messaging_events>>.
+
+=== Communicatiewijzes
+
+* Fire & Forget
+* Request-Reply
+* Publish-Subscribe
+
+// [TODO:1 Toelichting deze kerntermen]
+
+=== Coupling
+
+==== Spatial & Temporal coupling
+
+Quadrant
+
+==== Overige vormen en Connascence
+
+Semantisch! Contract
 

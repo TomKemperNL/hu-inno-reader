@@ -1,5 +1,5 @@
 = Innovation SD Backend
-:doctype: book
+:doctype: article
 :bibliography-database: referenties.bib
 :bibliography-hyperlinks: true
 :bibtex-style: apa
@@ -10,7 +10,7 @@ Tom Kemper, en hopelijk nog veel meer
 include::inno-inleiding.adoc[]
 include::bep3/1-intro.adoc[]
 include::asd/1-asdintro.adoc[]
-include::asd/2-add-diagramming.adoc[]
+include::asd/2-monoliths.adoc[]
 include::asd/3-ddd-tactical.adoc[]
 include::bep3/2-rpc.adoc[]
 include::bep3/3-messaging-basic.adoc[]
