@@ -94,14 +94,27 @@ Het is onfortuinlijk dat we dus twee verschillende betekenissen van het woord RP
 
 ==== SOAP & GRPC
 
+SOAP is een oud RPC-protocol waarbij we lijvige XML-documenten sturen als Request en Response. Deze werden meestal over HTTP verstuurd, maar soms ook over andere communicatiemedia. Bij SOAP (en GRPC) is het basisidee dat er een programmeertaal-onafhankelijke service definition file is (een WSDL file voor SOAP, een Protobuf file voor GRPC), waaruit voor meerdere programmeertalen een skelet van code gegenereerd kan worden voor elke operatie die de service aanbiedt, of elke data-structuur die als parameter of return-waarde dient voor deze operaties.
+
+Op zich is dit geen gek idee. Het is dus jammer dat dit bij SOAP een beetje stuk liep op het feit dat elke programmeertaal dit skelet -net- even anders genereerde, waardoor het in de praktijk toch een hele hoop gedoe was om verschillende talen met elkaar te laten praten.
+
+GRPC gebruikt geen XML, maar Protobuf over (de lower-level delen van ) het HTTP/2 protocol. In de basis heeft het veel overeenkomsten met SOAP, maar het is een heel stuk efficienter (en ook efficienter dan bijv. REST). Tot nu toe lijkt het drama qua implementaties van SOAP achterwege te blijven, maar dat komt waarschijnlijk voornamelijk omdat de organisatie achter GRPC (Google RPC) bijna alle clients zelf gebouwd en ge-opensourced heeft.
+
+Een nadeel is dat er geen goede (browser-)javascript SOAP of GRPC clients zijn, dus deze protocollen zijn voor server-server communicatie.
+
+[TODO:2 voorbeelden!]
+
+
 ==== GraphQL
 
-Hier staat ook wat
+GraphQL is een project van Facebook waarin je een bepaald datamodel direct kan exposen als API. Dus je maakt een datamodel, en je hebt maar één endpoint nodig om vervolgens je clients zelf hun eigen queries en operaties te laten schrijven.
 
+Dit is tegelijkertijd de grootste kracht, en de grootste zwakte. Het is superflexibel, maar het is ook verdraaid lastig om alle mogelijke queries performant te houden.
 
+[TODO:2 voorbeelden!]
 
-
-=== Multi-project-POMs
+[#multipom]
+=== Multi-project-POMs (Java-specifiek)
 
 ==== Maven refresher
 

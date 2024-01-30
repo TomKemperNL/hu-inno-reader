@@ -66,7 +66,7 @@ De stof van dit semester heeft me echt rust, en een veel fijnere baan gegeven.
 -Tom
 ****
 
-Tot slot hebben we nog de aanwezigheid van bestaande systemen die ons kunnen dwingen om de uitdagingen van een gedistribueerd systeem het hoofd te bieden. Op school heb je er niet zoveel mee te maken, maar in de meeste praktijk situaties heb je te maken met bestaande software systemen. De studentenlijst moet uit Osiris komen, en correct in Canvas geladen worden. Cijfers uit Testvision moeten teruggezet worden bij een assignment in Canvas, etc. (dit is allemaal wensdenken overigens, de HU is niet zo geautomatiseerd).
+Tot slot hebben we nog de aanwezigheid van bestaande systemen die ons kunnen dwingen om de uitdagingen van een gedistribueerd systeem het hoofd te bieden. Op school heb je er niet zoveel mee te maken, maar in de meeste praktijk situaties heb je te maken met bestaande software systemen. De studentenlijst moet uit Osiris komen, en correct in Canvas geladen worden. Cijfers uit Testvision moeten teruggezet worden bij een assignment in Canvas, etc. (dit is allemaal wensdenken overigens, de HU is niet zo geautomatiseerd). Deze systemen zijn allemaal afzonderlijk van elkaar ingekocht, en vaak in compleet andere programmeertalen geschreven, dus in deze gevallen kun je er niet één applicatie van maken, ook al zou je het willen.
 
 [#fallacies]
 === Waarom niet?
@@ -168,19 +168,45 @@ Tot slot kun je gebruik maken van asynchrone messaging systemen. Dat is een zeer
 
 === Communicatiewijzes
 
+Naast een algemene stijl van integratie zijn er ook verschillende manieren waarop de verschillende nodes in je systeem met elkaar communiceren. In cite:[hohpe_enterprise_2012] onderscheiden we grofweg drie manieren:
+
 * Fire & Forget
 * Request-Reply
 * Publish-Subscribe
 
-// [TODO:1 Toelichting deze kerntermen]
+Degene die verreweg het meest bekend zal zijn is Request-Reply. Tot nu toe waren onze backends voornamelijk HTTP gericht, dus met een HTTP-Request en een HTTP-Response (de reply). Hierin verwachten we altijd een antwoord op ons verzoek, al is het maar puur een erkenning dat het Request correct begrepen en/of uitgevoerd is. Uiteraard is het nadeel van een Request-Reply strategie dat je alle Fallacies of Distributed systems dubbel tegenkomt! Op de heenweg (het Request) en op de terugweg (de Reply). Meestal gebruikt een RPC integratie Request-Reply als communicatiewijze.
+
+Als je per se tegen de stroom in wilt, dan zou je kunnen beweren dat een Request/Acknowledge HTTP interactie een voorbeeld is van Fire & Forget met RPC. Bij Request/Acknowledge checkt de ontvangende partij puur of het ingekomen bericht begrijpelijk is, en stuurt zo snel mogelijk een HTTP-status 202-Accepted terug. Het daadwerkelijke werk gebeurt dan op bijv. een andere Thread. Een voorbeeld hiervan zijn bijv. de algemene AVG & Privacy-rapporten die je kan opvragen bij Social Media providers. Dan verzoek je al je data en krijg je een paar dagen later een berichtje dat je een zipje/pdfje/ander-verslagje kan downloade.
+
+Publish-Subscribe kan natuurlijk ook over RPC, dan denk je bijv. aan zogeheten Web-Hooks. Zo kun je bij Github bijv. voor verschillende _Events_ (zoals een push, of een gefaalde CI-build, of iets dergelijks) één of meerdere URLs opgeven waar Github dan een bepaalde POST naartoe stuurt als die gebeurtenis optreedt.
+
+In het geval van Fire & Forget sturen we een bericht naar een andere service. En dat was het. We weten niet _OF_ het is aangekomen, _OF_ het begrepen is, _OF_ dat het misschien grandioos is misgegaan. Weten we allemaal niet. En, als dit acceptabel is in onze usecase, dan is dat ook heel bevrijdend! We weten het niet, en hoeven er dus ook geen rekening mee te houden in ons systeem! (sterker nog, dat kunnen we helemaal niet). Een voorbeeld is als je bijv. informatie wilt loggen en dat naar een ander systeem wilt brengen. Meestal is die informatie van vrij lage waarde, dus we willen absoluut niet het risico lopen dat een fout in het versturen van onze logging-informatie de echt belangrijke business-processen tot een halt roept. In de praktijk gebruiken we een Fire & Forget interactie ook wel in het wat grijzere gebied waarbij we een bericht versturen, en de informatie over hoe het is gegaan op een totaal andere wijze, vaak veel later, pas terug komt. Neem bijv. het versturen van een e-mail. Als dit niet lukt (bijv. omdat het andere emailadres niet bestaat, of omdat er iets qua spam-regels niet helemaal soepel gaat), dan hoor je dit vaak pas uren/dagen later, via een totaal ander kanaal. Het is dan een beetje een grijs gebied of dit Request-Reply, of twee losse Fire & Forgets zijn. 
+
+Tot slot is er Publish-Subscribe, dat is het standaard Observer-Pattern, maar dan voor communicatie tussen processen. Bij het Observer-pattern is er een Event (bijv. een Button-Click), waar meerdere functies zich aan kunnen hangen (_subscriben_ als een _observer_). Op het moment dat er daadwerkelijk geclicked wordt, dan wordt de click-event gepublished naar alle subscribers; oftewel al die functies worden uitgevoerd.
+Bij de Publish-Subscribe integratie-wijze meldt je een service dus aan om bepaalde berichten te ontvangen. Dit zorgt er voor dat de service waar informatie vandaan komt niet hoeft te weten _OF_, en zo ja, _hoeveel_ services er van diens informatie afhankelijk zijn. Dat is ook heel bevrijdend qua werklast. Jij kan als service-developer gewoon je ding doen, services komen wel naar jou toe als ze interesse hebben. Zo'n event wordt vaak via eenzelfde systeem als Fire & Forget gepublished, dus één kant op, met geen fancy foutafhandeling. Dat is ook belangrijk, want je wil niet dat één subscriber er voor kan zorgen dat alle andere subscribers hun berichten niet meer ontvangen!
+
+Eenvoudige messaging integraties maken vaak gebruik van Fire & Forget, en zodra er meer & meer services ontstaan evolueert dit vaak naar Publish/Subscribe. Het is uiteraard ook mogelijk om Request/Reply interacties op te zetten met Messaging, maar dat is iets minder gebruikelijk (het is gewoon net iets lastiger qua frameworks & code, dan om in dat soort gevallen een RPC call te doen). Spring-AMQP heeft bijv. een aantal SendAndWaitForReply methodes, maar dat is vaak een beetje zonde, omdat jouw applicatie dan middenin een stukje server-code gaat zitten wachten op een reply. Dat is voor een webserver vaak vragen om performance-problemen.
 
 === Coupling
 
-==== Spatial & Temporal coupling
+Bij Software Architecture hebben we het gehad over Coupling: hoeveel afhankelijkheid hebben stukken code van elkaar? De koppeling die we daar hebben besproken was primair gericht op compile-time dependencies. Welke andere classes of modules gebruikt een class of module om z'n werk te doen. Dit concept van koppeling kun je breder trekken, naar verschillende soorten koppeling. In deze cursus spelen 3 andere soorten Coupling ook een grote rol:
 
-Quadrant
+* Spatial Coupling (ook wel Referential Coupling genoemd): services weten van elkaar in detail *waar* ze zijn
+* Temporal Coupling: services zijn sterk afhankelijk van elkaars temporele eigenschappen, ze moeten bijv. tegelijk online zijn, of als de één traag is wordt de ander dat ook.
+* Semantic Coupling: De ene service weet stiekem heel veel details van hoe de ander z'n werkt doet, en maakt daar ook gebruikt van.
 
-==== Overige vormen en Connascence
+Als voorbeeld nemen we een bestellings-applicatie (van zeg... broodroosters), met daarachter een magazijn-applicatie (die bijhoudt hoeveel we er per soort nog op voorraad hebben) en een bezorgings-applicatie die de bestelde broodroosters tot aan je deur brengt. En laten we een aantal mogelijke manieren doorlopen waarop dit systeem geïmplementeerd zou kunnen zijn...
 
-Semantisch! Contract
+Stel de bestellings-applicatie stuurt een bericht naar de magazijn-applicatie via HTTP naar een bepaald IP adres (bijv. POST http://192.168.178.42:8082/toasters/reservations), en die magazijnservice stuurt een bezorgings-commando door naar de bezorging (bijv. POST http://192.168.178.99:8080/toasters/deliveries). Deze services weten nu heel precies van elkaar waar de processen draaien (op IP-adres en poort), en omdat het HTTP is moeten ze ook allemaal tegelijk online zijn om deze usecase te laten werken. Stel nu dat de bestelling geannuleerd wordt, en dat in dat geval de bestellings-applicatie _weet_ dat er dan een annulering doorgestuurd moet worden naar *EN* het magazijn, *EN* de bezorging. Dan weet de bestelservice ook nog 's stiekem dat de magazijnservice überhaupt met de bestelservice praat. Deze drie applicaties zijn dus Spatieel, Temporeel en Semantisch sterk geCoupled. De kleinste fout of miscommunicatie tijdens het onderhouden of doorontwikkelen van deze services kan het hele bestelproces om zeep helpen, en dat zal het bedrijf niet leuk vinden.
+
+Als je het zo expliciet leest dan denk je misschien bij jezelf "Dat soort systemen zou ik nooit bouwen!", maar vaak ontstaan dit soort systemen omdat dit soort features langzaam groeien, en een directe coupling bij elke kleine stap met afstand de makkelijkste optie was.
+
+Een alternatieve strategie is om de bestellings-applicatie via Messaging en Publish Subscribe één bericht ("Er is een bestelling voor broodrooster XYZ") te laten afleveren op een gedeelde plek. Zowel de magazijn-applicatie, als de bezorgings-applicatie subscriben aan deze berichten en krijgen dus een kopietje. De annulering kan dan soortgelijk verlopen. In dit scenario weten de applicatie van elkaar niet waar ze gehost zijn, of ze überhaupt online zijn, en al helemaal niet wat er onderling gebeurd. Deze applicaties zijn dus op al deze dimensies ontkoppelt.
+
+Uiteraard is de compleet ontkoppelde wereld ook niet altijd ideaal, want misschien stuurt in dit geval de magazijnservice wel nog steeds een bericht dat de bezorging geannuleerd moet worden, en krijgt de arme bezorger dubbele spam op z'n telefoon. Een super-los-gecoupled systeem kan erg rommelig en chaotisch overkomen. Dus een zekere mate van Coupling geeft ook duidelijkheid en structuur.
+
+Tot slot nog een korte noot over de reeds bekende vorm van Coupling, die van dependencies tussen classes en modules, maar dan in de wereld van gedistribueerde systemen. Een vaak genoemd voordeel van gedistribueerde systemen is dat je verschillende programmeertalen kan mengen (zodat je teams met verschillende expertises kan laten samenwerken). Dan is het uiteraard niet goed mogelijk om ze classes en modules te laten delen (je kunt immers in C# geen Java classes inladen). 
+
+Ook als dit wel mogelijk is (omdat alle applicaties in dezelfde taal zijn geschreven) is het heel erg oppassen geblazen. Het algemene advies is om zowieso geen afhankelijkheid in te bouwen tussen services (dus Service A zou alle classes van Service B mogen gebruiken), dat levert teveel chaosfootnote:[Spring doet hier technisch ook heel moeilijk over. De Spring-boot-maven plugin herschrijft je JAR files zodanig dat je ze niet als dependency meer kan gebruiken. Geluk bij een ongeluk, wat mij betreft.]. 
+Op zo'n moment kun je expliciet een extra module starten met daarin alleen gedeelde code, dan is ook voor iedereen duidelijk dat die code niet zomaar aangepast kan worden zonder overleg (of op z'n minst rekening-houden-met). Uiteraard zijn er puristen die zeggen dat je dit nooit mag doen, maar wees hier vooral pragmatisch in. Praktische voorbeelden hiervan zie je in <<multipom>>.
 

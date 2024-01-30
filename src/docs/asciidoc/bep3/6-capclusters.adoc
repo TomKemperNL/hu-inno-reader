@@ -11,7 +11,7 @@
 
 ==== Configuration Management
 
-=== Blockchain
+//=== Blockchain
 
 // [TODO:4 Willen we überhaupt nog dit onderwerp aansnijden? De hype voelt wel voorbij]
 

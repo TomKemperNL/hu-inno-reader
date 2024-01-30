@@ -1,11 +1,5 @@
 == Messaging
 
-Communicatiewijzes:
-
-* Fire & Forget
-* Request / Reply
-* Publish / Subscribe
-
 Message soorten
 
 * Command
