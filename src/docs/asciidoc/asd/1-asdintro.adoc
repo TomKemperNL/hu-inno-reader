@@ -1,14 +1,43 @@
 == Gedreven ontwerpen
 
-huh?
+[quote, Mark Richard]
+"Software Architecture is the stuff you can't google."
+
+****
+Één van de lastigste issues in de overstap van een opleiding naar 'het echte werk' is dat alle beoordelingskaders wegvallen. Het is me al lang opgevallen dat studenten geobsedeerd zijn met de vraag "Is dit goed?". En dan speelt dit meer bij de design-vakken, dan bij de bouw-vakken.
+
+En het eerlijke antwoord is bijna altijd "Ik heb geen idee, wat probeerde je te bereiken?". En dan is het antwoord vaak een zeer verbloemde versie van "Niets eigenlijk, ik wil gewoon van deze opdracht af zijn". En het is erg lastig om daar een ontwerp voor te maken.
+
+-Tom
+****
+
+Software design is een vreemd vak. Het bestaat uit twee delen:
+* Het zichtbare gedeelte: de documenten, de diagrammen, de presentaties, het gepraat
+* Het onzichtbare gedeelte: het model van het ICT-product in je hoofd, en hoe je dat model kan manipuleren, uitbreiden, etc.
+
+En als het goed is, is het bij software architecture net als bij ijsbergen: het gedeelte dat je niet ziet is veel groter, zwaarder en belangrijker dan het topje dat je ziet. Bij elke regel code nemen we beslissingen (hoe noem je een variabele?), en bij elk code-blokje (afsplitsen in een nieuwe method of niet?), en bij elke nieuwe functie/method (wat worden de input/output parameters?) en bij elke class (welke verantwoordelijkheden beleg ik hier?) en bij elke package (welke classes wonen hier) en bij elke module, laag, component, microservice, deelsysteem, systeemlandschap, bedrijscontext, concurrentiepositie, etc. 
+
+Bij gedreven ontwerpen willen we kijken naar de verschillende vormen waarop je die onzichtbare basis kan vormgeven, en uiteraard moeten we daarom ook even stilstaan met hoe je dat begrip zou kunnen communiceren aan je medestudenten en docenten.
 
 === Data-driven Design
 
-a
+De meest gangbare start van projecten is helaas nog steeds dat een stel ICTers de koppen bij elkaar steken en eens even goed gaan nadenken welke *data* het systeem _in_ en _uit_ gaat. Dit leidt dan vaak tot een ERD-diagram of UML-class-diagram, want die zijn best geschikt om attributen weer te geven en kardinaliteitsrelaties (één-op-meer, meer-op-meer, etc.) weer te geven.
+
+We hebben ook sinds de jaren 80 al een redelijk idee hoe we zo'n model kunnen maken dat voor 90% van dit soort systemen goed genoeg is (<<Normalisatie>>). Vervolgens maken we voor al die stukjes data een front-end-formulier, een REST-controller die het de database in propt, en een paar excelletjes die je kan downloaden met de overige informatie. En hoppa, de volgende 6-/10 applicatie is tot leven gewekt in onze industrie.
+
+En soms is dit precies wat je nodig hebt. Weet dan dat er allerhande frameworks zijn die je een hoop werk uit handen nemenfootnote:[Spring-data-rest bijv. heeft genoeg aan je repositories om de hele presentatie/service-laag te genereren. Dat is handig als je een project wil scaffolden]. 
+
+Door echter zo op data te focussen, en het schuiven van die data van hot naar her (ik stel me een oude verweerde man met een sneeuwschop voor, met een pijp in z'n mond, en zo'n oubollig petje) heb je eigenlijk ook niet zoveel aan al die moeite die we stoppen in use-cases, process-analyse, etc. Want _eigenlijk_ interesseert het je niet, of in elk geval alleen tot in de mate dat het invloed heeft welk veld wel/niet in een tabel/formulier moet.
+
+OOP heeft hier ook totaal geen zin, want we zijn alleen met data-structuren bezig. Deze basis-architectuur noemen we vaak ook wel een Transaction-Script cite:[fowler_peaa]. 
 
 === Responsibility Driven Design
 
-b
+Er zijn in ons vakgebied een heleboel "Driven Design" of "Driven Development" aanpakken, zoveel dat we er een leeruitkomst naar vernoemd hebben. Dan moeten we op z'n minst even kijken naar de methode die deze _meme_ cite:[dawkins_meme] gestart is: Responsibility Driven Design cite:[wirfs_brock_rdd].
+
+// [TODO:2 Even uitzoeken]
+
+Het belangrijkste resultaat was in elk geval dat het verzet tegen de tyrannie van de data geboren was.
 
 === Attribute Driven Development (ADD 3.0)
 
@@ -17,5 +46,8 @@ b
 
 === Fundamental Laws of Software Architecture
 
-c
+1. Everything in Software Architecture is a tradeoff.
+    * If you think it isn't a tradeoff, it's more likely you haven't identified it yet.
+2. The Why is more important than the how.
 
+cite:[richards_ford_fundamentals]

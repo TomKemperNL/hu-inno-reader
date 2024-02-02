@@ -4,6 +4,8 @@
 
 ==== ACID Transacties 
 
+==== Normalisatie
+
 === Refresher SQL, DAOs
 
 === Refresher JPA & ORM
