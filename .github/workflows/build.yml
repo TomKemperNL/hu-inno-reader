@@ -38,11 +38,11 @@ jobs:
           docker compose run --rm ascii-html
       - name: HUH
         run: |
-          ls ./src/docs/asciidoc
+          ls ./target
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:        
-          path: './src/docs/asciidoc/index.html'
+          path: './target'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
