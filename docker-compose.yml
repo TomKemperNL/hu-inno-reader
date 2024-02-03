@@ -5,3 +5,9 @@ services:
     command: "asciidoctor-pdf -v -r asciidoctor-bibtex inno.adoc"
     volumes:
       - "./src/docs/asciidoc:/documents"
+  ascii-html:
+    image: asciidoctor/docker-asciidoctor
+    command: "asciidoctor -o index.html -v -r asciidoctor-bibtex inno.adoc"
+    volumes:
+      - "./src/docs/asciidoc:/documents"
+  
