@@ -22,6 +22,7 @@ public Boeking updateBoeking(long boekingId, int aantalPersonen, double prijs, l
         boeking.setAantalPersonen(aantalPersonen);
         boeking.setPrijs(prijs);
         boeking.setKlasse(reisKlasse);
+        boeking.setStatus(BoekingStatus.active)
         return boekingRepository.save(boeking);
     }
     throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Er is geen boeking gevonden met boeking_id: " + boekingId);
@@ -58,9 +59,132 @@ Als tweede voorbeeld zien we <<updateKlant>>. Het eerste dat opvalt is het grote
 
 Belangrijker nog bij een method als updateKlant is dat we graag zouden willen kunnen inschatten of er bugs in zitten. Dat is bij deze method erg lastig! We hebben namelijk geen idee wat de context is waarin deze operatie gebeurd. Zou er misschien een verband zijn tussen de nationaliteit en het land? Geen idee! Kortom, de naam van de methode vertelt ons bizar weinig wat er in deze methode moet gebeurenfootnote:[Op _applicatie_-niveau. Als deze method in een data-access laag zou voorkomen is het niet zo'n hele gekke methode. Maar we gebruiken zelfs een repository, dus we zijn zeker geen data-access code, want dat zit waarschijnlijk achter die repository-variabele...]...
 
-Tot slot zit er nog iets riskants in de manier waarop zowel updateKlant als updateBoeking als eerste argument een kale _long_ vragen. Dat betekent dat je als programmeur heel erg moet oppassen dat je niet per ongeluk het verkeerde id doorgeeft. Aangenomen dat de presentatielaag redelijke variabelenamen heeft zal dit risico wel meevallen
+Tot slot zit er nog iets riskants in de manier waarop zowel updateKlant als updateBoeking als eerste argument een kale _long_ vragen. Dat betekent dat je als programmeur heel erg moet oppassen dat je niet per ongeluk het verkeerde id doorgeeft. Aangenomen dat de presentatielaag redelijke variabelenamen heeft zal dit risico wel meevallen. 
+
+Maar als we dit idee van kale ids een klein beetje doortrekken kun je best in de problemen komen:
+[source, java]
+.cancelBooking
+----
+//In een class BookingService
+public Booking cancelBooking(long flightID, long bookingID, long passengerId) throws MessagingException {
+   // Implementatie is niet zo relevant
+}
+
+//Deze kan een niveau hoger worden aangeroepen als:
+
+bookingService.cancelBooking(102387, 321314, 89427); //of misschien
+bookingService.cancelBooking(102387, 89427, 321314); //of misschien
+bookingService.cancelBooking(89427, 321314, 102387); //of nog wat andere mogelijkheden...
+
+----
+Toevallig zou een moderne java-IDE zoals IntelliJ je in deze gevallen de parameternamen in de methode laten zien, maar dat is vrij IDE & programmeertaal-specifiek. Het is een oplossing voor een probleem dat er eigenlijk niet zou moeten zijn.
+
+=== Ubiquitous Language
+
+[quote, 'https://twitter.com/secretGeek/status/7269997868[Leon Bambrick]']
+"There are 2 hard problems in computer science: 
+cache invalidation, naming things, and off-by-1 errors."
+
+De eerste stap die DDD neemt om je code te verbeteren is niet eens zo heel technisch, maar wel moeilijk: naming things. Wat nou als we daar iets beter ons best op deden. We hebben het dan over namen van methods, variabelen, classes, packages, etc. etc. 
+
+Een paar simpele gevallen zie je al in de voorbeelden hierboven. Meestal als een methode _setXYZ_ of _updateXYZ_ heet, of als een class een _XYZManager_ is, dan is het totaal niet duidelijk wanneer het uitvoeren van die method wel of niet zou mogen. Het is niet logisch om zomaar de _setLand_ method aan te roepen, los van _setStad_, die zaken hebben met elkaar te maken. Je kunt waarschijnlijk niet zomaar _booking.setStatus(BookingStatus.Active)_ aanroepen, daar zitten regels aan!
+
+Feitelijk is dit niets anders dan het standaard Object-Oriented Programming-principe Encapsulatie. We willen onze objecten beschermen tegen wijzigingen die ze in een ongeldige toestand zouden plaatsen. 
+
+Dus de eerste stap is om wat je toch al aan dingen hebt een goede naam te geven. Laten we voor het gemak aannemen dat al die velden bij _updateKlant_ op een enkel formulier op een standaard Profile-pagina. Dan is een redelijke naam voor die method _processProfileForm_.
+
+De tweede stap is om meer dingen te maken die een naam kunnen hebben. In cite:[fowler_refactoring_2018] staan genoeg suggesties, zoals het introduceren van extra variabelen met https://refactoring.com/catalog/extractVariable.html[Extract Variable], het introduceren van korte beschrijvende methods met https://refactoring.com/catalog/extractFunction.html[Extract Method] of hele nieuwe objecten met https://refactoring.com/catalog/extractClass.html[Extract Class]. En dat brengt ons 'toevallig' bij Value Objects...
 
 === Value Objects
+
+Een value-object is een object die een 'hele waarde' representeert. Kijk bijv. nog eens naar <<updateKlant>>. We sturen daar bijv. alle losse velden van een _Adres_ door. Netter is dan om één object van de class _Adres_ door te geven, dan los je ook gelijk het probleem op dat je bijv. per ongeluk alleen het land wijzigt zonder de stad te wijzigen, of dat een opmerking als "Boven de winkels" na een verhuizing in een opmerkingenveld blijft staan. Andere voorbeelden zijn RGB-kleuren, of coördinaten.
+
+Een verbeterde versie van deze signatuur zou er bijv. zo uit zien:
+
+[source, java]
+----
+public Klant processProfileForm(
+        long id, 
+        Persoonsgegevens persoonsgegevens,
+        Contactgegevens contactgegevens,
+        Adres adres
+    ) throws KlantNotFoundException {
+    //Implementatie laat zich raden
+}
+----
+
+Een bijkomend voordeel van al deze kleine objectjes is dat ze allerhande code kunnen huisvesten (zoals het opmaken van een adres, of naam in een String) die anders erg awkward op de Klant class terecht waren gekomen. footnote:[Je zou zeker ook door kunnen gaan en een apart object kunnen aanmaken voor het hele Profile-formulier. Dan wordt de signatuur eenvoudigweg _public Klant processProfileForm(ProfileForm form)_, alleen zou dat de volgende voorbeelden wat onleesbaarder maken. Maar in de praktijk zeker geen gek idee!]
+
+Een tweede doel waar Value Objects zich goed voor lenen is om duidelijk aan te geven waar een object voor bedoeld is. Bijv. dat die _long_ puur een KlantId is, en niet gebruikt kan worden om een Vlucht of een Boeking op te halen.
+
+[source, java]
+----
+public Klant processProfileForm(
+        KlantId id, 
+        Persoonsgegevens persoonsgegevens,
+        Contactgegevens contactgegevens,
+        Adres adres
+    ) throws KlantNotFoundException {
+    //Implementatie laat zich raden
+}
+
+//en elders in de codebase
+
+public class KlantId {
+    private final long value;
+
+    public KlantId(long value){
+        this.value = value;
+    }
+
+    public long getValue(){
+        return this.value;
+    }
+}
+----
+
+Je zou nu in je KlantRepository-interface om exact deze Id-class kunnen vragen, en als je dan ooit per ongeluk het verkeerde Id zou gebruiken krijg je een nette compile error footnote:[De auto-gegenereerde Spring JPA-Repository interfaces werken helaas niet zo heel fraai met deze truc.]. 
+
+Types (zoals Classes en Interfaces) gebruiken om compiler-errors te genereren voor 'stomme fouten' is de basis van zogeheten Type-Driven Development.
+
+Ten derde kun je Value Objects goed gebruiken om er voor te zorgen dat iets eens en voor altijd een geldige waarde heeft. Stel je moet (zoals in <<updateKlant>>) een emailadres verwerken: er zijn meer mogelijke Strings dan dat er email-adres strings zijn. Als je emailadressen overal Strings zijn, zul je op verschillende plekken moeten gaan checken of die String eigenlijk wel een emailadres is. Bijv. bij binnenkomst van een POST (in de presentatielaag, als onderdeel van input-validatie), maar ook in de setter van een Klant (want je weet niet _zeker_ hoe je door de presentatielaag bent gekomen), en ook weer op elke plek waar je het als emailadres in de applicatie gebruikt. Bijv. in een view met een mailto: linkje, of als je geautomatiseerd een zeer-informatieve-absoluut-geen-spam-mail naar iemand wil versturen. Op die manier valideer je je een ongeluk.
+
+Makkelijk is dan om zo gauw je weet dat het een String een emailadres zou moeten zijn om het in een Value-Object te vatten die aangeeft _dat_ het een emailadres is, en _dat_ je het _echt_ gechecked hebt:
+
+[#emailvalueobject]
+[source, java]
+.Email Value-Object
+----
+public class EmailAddress {
+    private String emailaddress;
+
+    public EmailAddress(String rawValue){
+        if(!Pattern.matches("[\\w.]+@\\w+\\.\\w+", rawValue)){ //Emailadressen zijn notoir tricky, maar dit geeft het idee
+            throw new IllegalArgumentException("rawValue");
+        }
+        this.emailaddress = rawValue;
+    }
+
+    //getter, en misschien extra getters voor 'het stukje voor/achter de @' 
+}
+
+----
+
+Door een <<emailvalueobject>> te gebruiken weet je op alle plekken waar je een EmailAddress instantie binnenkrijgt dat je gewoon veilig dit object kan gebruiken om een link te genereren, of een mail te versturen. Het was immers niet mogelijk om een instance te maken zonder langs je check in de constructor te komen!
+
+Deze strategie staat ook wel bekend onder de slogan "Parse, don't Validate!" cite:[parse_dont_validate].
+
+==== Immutability & Equals
+
+Een goed value-object is immutable, dat betekent dat het niet gewijzigd kan worden nadat het aangemaakt is. Praktisch betekent dit dus geen setters of andere methods die interne velden wijzigen nadat het object aangemaakt is.
+
+Een tweede essentiele eigenschap van een Value Object is dat het gaat om de waardes (what's in name...). Dat betekent dat het belangrijk is om de equals (en dus ook de hashcode) methode te overschrijven. Dat is zo'n standaard-klusje dat elke programmeertaal daar z'n eigen ritueel/standaard-implementatie voor heeft. In Java kun je dat gelukkig aan IntelliJ overlaten (of de Objects.equals / Objects.hash helper methods gebruiken).
+
+Dit soort objecten (immutable, en puur op waarde vergelijkbaar) zijn veel simpeler te testen dan 'gewone' mutable objecten. Omdat ze niet kunnen wijzigen zijn er minder randgevallen, en is er minder testcode nodig om een goede coverage te behalen. Kortom, als je kan, is het raadzaam zoveel mogelijk van je domeinlogica op deze objecten te implementeren, dat scheelt je testcode.
+
+Het klassieke voorbeeld cite:[evans_ddd] gaat over blikken verf (mutable) die gemengd moeten worden. Daarbij is de menglogica op kleine Color Value-Objects geïmplementeerd, wat een stuk rustiger code-design oplevert. Bij ons vliegtuig-voorbeeld zou je bijv. bij het wijzigen van een boeking de BoekingsGegevens (value-object) van de huidige boeking kunnen vergelijken met de BoekingsGegevens van de gewenste boeking, om zo een verschilfactuur te genereren, en in één keer de juiste wijziging op de opgeslagen boeking te voltooien.
+
+Uiteindelijk heeft Immutability natuurlijk en grens en moet er namelijk wel ergens iets veranderen in een database, en dat brengt ons bij...
 
 === Entities
 

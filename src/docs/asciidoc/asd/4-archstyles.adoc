@@ -1,4 +1,4 @@
-== Archityecturele stijlen
+== Architecturele stijlen
 
 === Monoliet
 
