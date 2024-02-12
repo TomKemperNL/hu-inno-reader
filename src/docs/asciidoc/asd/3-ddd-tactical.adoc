@@ -1,8 +1,68 @@
 == Domain-Driven Design - Tactical
 
-=== Entities
+=== Inleiding
+
+Domain-Driven Design (hierna afgekort DDD, want het is nogal een mondvol) is het geesteskind van Eric Evans cite:[evans_ddd], en zoals de naam suggereert, claimt dat de primaire drijfveer achter je software-design het domein zelf moet zijn. Primair is dus niet
+of je code op een bepaalde manier gestructureerd is, of hoe performant het is, of dat de data allemaal netjes genormaliseerd is, maar puur of de code 'het domein' uitdrukt.
+
+En nu komen we meteen op het grootste issue dat men heeft met DDD heeft: wat betekent het in vredesnaam allemaal? Klassiek gezien bestaat DDD uit twee delen, het tactische deel, en het strategische. Het strategische gedeelte wordt gezien als het meest belangrijke en vernieuwende, en gaat over hoe software ontwikkeling vaak verschillende conflicterende visies op "het domein" moet verenigen: dit zullen we behandelen in <<ddd-strategic>>. We starten met het tactische deel, het deel dat direct toepasbaar is binnen het ontwikkelen van een enkele applicatie.
+
+Laten we eerst even kijken wat voor soort code we willen voorkomen:
+
+[#updateBoeking]
+[source, java]
+.wijzigen van een boeking in Java
+----
+//In een service/applicatie-laag, vlak onder de presentatie/ui-laag
+public Boeking updateBoeking(long boekingId, int aantalPersonen, double prijs, long klasse) {
+    Optional<Boeking> gevondenBoeking = boekingRepository.findById(boekingId);
+    Reisklasse reisKlasse = reisKlasseService.findById(klasse);
+    if (gevondenBoeking.isPresent()) {
+        Boeking boeking = gevondenBoeking.get();
+        boeking.setAantalPersonen(aantalPersonen);
+        boeking.setPrijs(prijs);
+        boeking.setKlasse(reisKlasse);
+        return boekingRepository.save(boeking);
+    }
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Er is geen boeking gevonden met boeking_id: " + boekingId);
+}
+----
+
+
+Als we kijken naar <<updateBoeking>> dan zien we iets geks gebeuren: prijs, klasse en aantalpersonen kunnen los van elkaar ingevoerd worden. Dat is aan de ene kant heel flexibel, maar het is zeer waarschijnlijk dat in het domein van het boeken van kaartjes (in dit geval voor een vliegreis) dat de prijs iets te maken heeft met het aantal tickets en in welke klasse er gevlogen wordt...
+
+Kortom, puur in de _signatuur_ (naam van de method, welke parameters er gevraagd worden, en wat er gereturned wordt) zie je al gekkigheid. We kunnen in deze methode eigenlijk geen nuttig werk verrichten, behalve domweg data doorschuiven. Aangezien deze methode in de service-laag woont betekent dat dat de echte bedrijfslogica omhoog gedrukt wordt de presentatielaag in, iets dat in elk geval de testbaarheid en herbruikbaarheid niet ten goede zal komen.
+
+[#updateKlant]
+[source, java]
+.Updaten van een klant in Java
+----
+public Klant updateKlant(long id, 
+        String voornaam, String achternaam, Integer leeftijd, String nationaliteit,
+        String email, String telefoonNr,
+        String straat, String huisNr, String toevoeging, String postcode, String stad, String land) throws KlantNotFoundException {
+    Klant klant = klantRepository.findById(id).orElseThrow(() -> new KlantNotFoundException("klant met id " + id + " kan niet worden gevonden!"));
+    Passagier passagierGegevens = klant.getPassagierGegevens();
+
+    if (voornaam != null) passagierGegevens.setVoornaam(voornaam);
+    if (achternaam != null) passagierGegevens.setAchternaam(achternaam);    
+    //Etc... etc...
+    if (stad != null) passagierGegevens.setStad(stad);
+    if (land != null) passagierGegevens.setLand(land);
+
+    return klantRepository.save(klant);
+}
+----
+
+Als tweede voorbeeld zien we <<updateKlant>>. Het eerste dat opvalt is het grote aantal parameters van deze methode (en dat gaan er alleen maar meer worden), en het tweede is dat het bijna allemaal strings zijn. Het fijne aan Strings is dat ze heel flexibel zijn, en het lastige aan Strings is dat ze heel flexibel zijn. Het is makkelijk te vergeten omdat de variabelenamen onze gedachte sturen, maar een String in Java kan zowel leeg ("") zijn, als maximaal 2,147,483,647	karakters lang (ter vergelijking, alle Lord of the Rings boeken, inclusief de Hobbit zijn ong. 5 miljoen karakters), en er kan iets heel redelijks inzitten zoals "Ligusterlaan", of random nonsens zoals "$#I&YFKJDSDH#*$(#)". Kortom, die Strings, die zeggen ons niet zo gek veel. Ze zorgen er in elk geval niet voor dat onze code domein-gedreven voelt.
+
+Belangrijker nog bij een method als updateKlant is dat we graag zouden willen kunnen inschatten of er bugs in zitten. Dat is bij deze method erg lastig! We hebben namelijk geen idee wat de context is waarin deze operatie gebeurd. Zou er misschien een verband zijn tussen de nationaliteit en het land? Geen idee! Kortom, de naam van de methode vertelt ons bizar weinig wat er in deze methode moet gebeurenfootnote:[Op _applicatie_-niveau. Als deze method in een data-access laag zou voorkomen is het niet zo'n hele gekke methode. Maar we gebruiken zelfs een repository, dus we zijn zeker geen data-access code, want dat zit waarschijnlijk achter die repository-variabele...]...
+
+Tot slot zit er nog iets riskants in de manier waarop zowel updateKlant als updateBoeking als eerste argument een kale _long_ vragen. Dat betekent dat je als programmeur heel erg moet oppassen dat je niet per ongeluk het verkeerde id doorgeeft. Aangenomen dat de presentatielaag redelijke variabelenamen heeft zal dit risico wel meevallen
 
 === Value Objects
+
+=== Entities
 
 === Aggregates
 

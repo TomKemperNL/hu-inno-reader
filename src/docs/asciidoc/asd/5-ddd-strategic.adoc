@@ -1,3 +1,4 @@
+[#ddd-strategic]
 == Domain-Driven Design - Strategic
 
 === Bounded Contexts

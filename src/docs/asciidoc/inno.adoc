@@ -1,5 +1,6 @@
 = Innovation SD Backend
 :doctype: book
+:sectnums:
 :bibliography-database: referenties.bib
 :bibliography-hyperlinks: true
 :bibtex-style: apa
