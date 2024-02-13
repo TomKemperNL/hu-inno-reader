@@ -115,6 +115,10 @@ public Klant processProfileForm(
 
 Een bijkomend voordeel van al deze kleine objectjes is dat ze allerhande code kunnen huisvesten (zoals het opmaken van een adres, of naam in een String) die anders erg awkward op de Klant class terecht waren gekomen. footnote:[Je zou zeker ook door kunnen gaan en een apart object kunnen aanmaken voor het hele Profile-formulier. Dan wordt de signatuur eenvoudigweg _public Klant processProfileForm(ProfileForm form)_, alleen zou dat de volgende voorbeelden wat onleesbaarder maken. Maar in de praktijk zeker geen gek idee!]
 
+Een goed voorbeeld van zo'n standaard Value-Object dat je waarschijnlijk al tientallen keren gebruikt hebt is de DateTime class van je programmeertaal naar keuze (LocalDateTime in Java). Dat is een object dat als waarde een bepaald moment in de tijd voorstelt, en is op die manier een samenraapsel van dag/maand/jaar/tijd, en kan op allerlei verschillende manieren benaderd worden.
+
+Als je twee van die DateTime objecten hebt, die toevallig hetzelfde moment in tijd aanwijzen, dan interesseert het je helemaal niets welke instantie je hebt, ze zijn volledig uitwisselbaar. De waarde telt.
+
 Een tweede doel waar Value Objects zich goed voor lenen is om duidelijk aan te geven waar een object voor bedoeld is. Bijv. dat die _long_ puur een KlantId is, en niet gebruikt kan worden om een Vlucht of een Boeking op te halen.
 
 [source, java]
@@ -188,13 +192,49 @@ Uiteindelijk heeft Immutability natuurlijk en grens en moet er namelijk wel erge
 
 === Entities
 
-=== Aggregates
+Deze kennen we! @Entity erboven, een Long'tje met @Id en @GeneratedValue en gaan met die banaan! 
 
-=== Tactical Patterns
+Was het leven maar zo mooi...
+
+Entities zijn objecten met een levensduur. Ze beginnen ergens, maken vanalles mee in hun bestaan, en eindigen tenslotte in een database, om het volgende request weer een nieuw rondje te maken. Wat een leven!
+
+Entities zijn _dingen_ die over de tijd heen veranderen. Maar we hebben nog wel het gevoel dat het steeds hetzelfde _ding_ is. Bij Value-Objects hebben we dat niet. Als we een beetje rood bij geel mengen krijgen we een nieuwe kleur (iets oranje'igs). Maar als we een beetje rode verf in een blik met gele verf gieten dan verandert dat blik verf (tenzij het direct overstroomt natuurlijk), het wordt niet een nieuw blik. In dit geval kunnen we niet praten over 'het blik met die-en-die-kleur', want alles aan dat blik kan veranderen (je kan er op staan, en het indeuken bijv.). In het echt is dit geen probleem, we wijzen met onze hand naar een bepaald blik en roepen uit "Dat blik, daar heb ik het over!".
+
+In een database heb je daarvoor een Identifier nodig. Iets dat een bepaald _ding_ uniek identificeert, zodat je er in feite naar kan _wijzen_. In onze applicatie hebben we zo'n Identifier ook nodig, want stel we vragen een bepaalde _Boeking_ op voor <<updateBoeking>>, dan willen we daar misschien een paar requests later nog een update overheen doen. Het is niet redelijk om al die boekingen in het geheugen te houden en hun exacte geheugenadres als Id te gebruiken footnote:[Nouja, misschien kan dit wel, zie bijv. <<redis>>, maar dan nog heeft persistent opslaan in een database zo z'n voordelen].
+
+Een entity is dus een object, aangewezen door een id, met een lifecycle, wiens state kan veranderen. Met state bedoelen we alle stukjes data die bij die entity horen, alle attributen in een taal als Java, C# of Python. 
+
+****
+Niet alle combinaties van state zijn geldig voor een object. Laten we als voorbeeld de Java ArrayList nemen. Het handige van een List ten opzichte van een gewone Array is dat je er zomaar objecten aan kan toevoegen. Een Array moet je elke keer met een bepaalde grootte aanmaken. De naam suggereert dat een ArrayList de List interface biedt met een Array op de achtergrond, en als we even onder de motorkap kijkenfootnote:[rechts-click op de ArrayList class en Go-To-Definition, in IntelliJ. Echt een aanrader!]
+
+[source, java]
+----
+//Fields uit de source van ArrayList.java
+transient Object[] elementData; 
+private int size;
+----
+
+Je ziet dat het size veld onafhankelijk wordt bijgehouden van de elementData array. Dat voelt in eerste instantie misschien een beetje stom (waarom niet gewoon elementData.length returnen in getSize()?), maar daar zit een goede reden achter.
+
+De ArrayList class doet veel moeite om zo min mogelijk keren een nieuwe elementData array te maken. Dus als je elementen toevoegt, en er is geen ruimte meer in de array, dan maakt de ArrayList de nieuwe array 'ietsje groter dan nodig'. Op dezelfde manier laat de ArrayList met plezier wat plekjes in de array leeg als je iets removed. Het size veld moet dus los worden bijgehouden, en het zou echt _superverwarrend_ worden als het size veld niet exact klopt met hoeveel elementen er in de array zitten.
+
+Dit is wederom het principe van OOP encapsulatie. En dat is echt essentieel voor OOP als geheel, en DDD in het bijzonder.
+
+****
 
 ==== Repositories
 
 ==== Factories
+
+Een Factory is een vrij standaard Design Pattern cite:[gof_design_patterns], zo heb je Abstract Factories, en Factory Methods, maar hier bedoelen we ook gewoon het simpele feit dat objecten graag elkaar maken.
+
+Flauw gezegd is een constructor eigenlijk een heel raar ding. Op een willekeurig moment in je applicatie spreid je je armen, en roep je uit naar de hemel "Laat er een object zijn!". En, vanuit het niets, is er dan _iets_.
+
+
+=== Aggregates
+
+=== Overige Patterns
+
 
 ==== Domain Services
 
