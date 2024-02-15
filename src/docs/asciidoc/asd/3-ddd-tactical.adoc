@@ -202,7 +202,7 @@ Entities zijn _dingen_ die over de tijd heen veranderen. Maar we hebben nog wel 
 
 In een database heb je daarvoor een Identifier nodig. Iets dat een bepaald _ding_ uniek identificeert, zodat je er in feite naar kan _wijzen_. In onze applicatie hebben we zo'n Identifier ook nodig, want stel we vragen een bepaalde _Boeking_ op voor <<updateBoeking>>, dan willen we daar misschien een paar requests later nog een update overheen doen. Het is niet redelijk om al die boekingen in het geheugen te houden en hun exacte geheugenadres als Id te gebruiken footnote:[Nouja, misschien kan dit wel, zie bijv. <<redis>>, maar dan nog heeft persistent opslaan in een database zo z'n voordelen].
 
-Een entity is dus een object, aangewezen door een id, met een lifecycle, wiens state kan veranderen. Met state bedoelen we alle stukjes data die bij die entity horen, alle attributen in een taal als Java, C# of Python. 
+Een entity is dus een object, aangewezen door een id, met een lifecycle, wiens state kan veranderen. Met state bedoelen we alle stukjes data die bij die entity horen; alle attributen in een taal als Java, C# of Python. Die veranderingen gebeuren in een OOP taal via public methods. Het is belangrijk dat die veranderingen altijd netjes gebeuren. Daarmee bedoelen we dat de regels van het object altijd gevolgd moeten worden: met een chique woord zijn objecten _invariant onder hun methodes_. Die invarianten wijzen dingen aan die altijd waar moeten zijn, zoals "het totaalbedrag van een bestelling moet gelijk zijn aan de optelsom van de delen". Hoewel zowel de bestelde onderdelen, als het totaalbedrag kunnen variëren, staat het feit dat die twee met elkaar kloppen vast, de regel is invariant.
 
 ****
 Niet alle combinaties van state zijn geldig voor een object. Laten we als voorbeeld de Java ArrayList nemen. Het handige van een List ten opzichte van een gewone Array is dat je er zomaar objecten aan kan toevoegen. Een Array moet je elke keer met een bepaalde grootte aanmaken. De naam suggereert dat een ArrayList de List interface biedt met een Array op de achtergrond, en als we even onder de motorkap kijkenfootnote:[rechts-click op de ArrayList class en Go-To-Definition, in IntelliJ. Echt een aanrader!]
@@ -222,7 +222,44 @@ Dit is wederom het principe van OOP encapsulatie. En dat is echt essentieel voor
 
 ****
 
+Kortom, in een nette codebase gaan entities (en dit is feitelijk gewoon een basisprincipe van OOP) per public method van een nette (consistente) toestand, naar een volgende nette toestand, waarbij aan alle invarianten voldaan is. Dit is heel belangrijk, omdat we bij DDD persistentie graag zo ver mogelijk naar de achtergrond drukken. En dat doen we met Repositories.
+
 ==== Repositories
+
+Dit is een pattern dat zeer wijdverspreid is. De repository is bedoeld als een hele simpele kijk op persistentie, eentje gebaseerd op een collectie zoals <<javacollection>>. 
+
+[#javacollection]
+[source, java]
+.Collectie interface
+----
+public interface Collection<E> extends Iterable<E>{
+    //De kern-methoden van de Java Collection interface    
+    Iterator<E> iterator();    
+    boolean contains(Object o);
+
+    boolean add(E e);
+    boolean remove(Object o);
+}
+
+public interface Repository<E, Id> {        
+    //Een vrij minimale Repository Interface
+    List<E> findAll(); //Pas op, gevaarlijk voor performance bij grote collecties
+    Optional<E> findById(Id id);
+    
+    Id add(E e);
+    void remove(E e);
+
+    //void flush(); //Technisch detail, verschilt nogal per framework
+}
+----
+
+De gedachte achter de collectie-abstractie is dezelfde als die van een garderobe. Je geeft je Entity (je jas) aan de Collection (de garderobe) en je krijgt een Id (een kaartje) terug om 'm later ooit weer op te halen. De vergelijking loopt een beetje mank omdat een persistentiestore vaak een kopie van je jas houdt, en je zelden aan een garderobe de opdracht kan geven om je jas te vernietigen (remove), maar in de basis is het vergelijkbaar. 
+
+Ter vergelijking, de Spring JpaRepository heeft bijna 40(!) methods EN een framework om custom-queries op basis van methode-namen te genereren, dus dat is een veeeeel uitgebreidere interface die ... niet echt meer dezelfde _simpele_ gedachte uitdrukt. 
+
+Een ander belangrijk detail is dat de repository nu nergens uitdrukt _wanneer_ entities worden opgeslagen. Vanuit het begrip van de Repository kun je een Entity uit de repository halen, wijzigingen uitvoeren op die Entity, en in principe mag je er vanuit gaan dat dit allemaal netjes opgeslagen wordt (want je entity zit in de repository, dus er is een persistentie-verplichting). In de praktijk zit er vaak een soort _flush_ methode bij die er voor zorgt dat die synchronisatie _nu_ gebeurd (In Spring doen we dit vaak met _@Transactional_, in plaats van expliciete flushes). 
+
+Al met al is het de bedoeling dat je ooit een Entity aan een Repository toevoegt, dat je je daarna geen zorgen over persistence meer hoeft te maken. Dit idee noemen we _Persistence Ignorance_ cite:[evans_ddd].
 
 ==== Factories
 
@@ -230,6 +267,15 @@ Een Factory is een vrij standaard Design Pattern cite:[gof_design_patterns], zo 
 
 Flauw gezegd is een constructor eigenlijk een heel raar ding. Op een willekeurig moment in je applicatie spreid je je armen, en roep je uit naar de hemel "Laat er een object zijn!". En, vanuit het niets, is er dan _iets_.
 
+Het is vaak de moeite waard om na te denken of je objecten niet natuurlijker ergens anders vandaan komen. Als we het cliché bestellingsvoorbeeld pakken, met een bidirectionele relatie tussen een Order en diens LineItems:
+
+[source, java]
+----
+Order o = new Order(klant);
+o.addItem(new LineItem(o, 12, product42));
+
+
+----
 
 === Aggregates
 
