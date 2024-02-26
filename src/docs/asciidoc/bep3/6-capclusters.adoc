@@ -1,15 +1,15 @@
-== Gedistribueerde Systemen 
+== CAP Theorem
 
-=== CAP Theorem
 
-=== Clustering & Consensus
+
+== Clustering & Consensus
 
 [#availability]
-==== Load balancing
+=== Load balancing
 
-==== Service Discovery
+=== Service Discovery
 
-==== Configuration Management
+=== Configuration Management
 
 //=== Blockchain
 

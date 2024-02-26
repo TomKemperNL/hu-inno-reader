@@ -174,7 +174,7 @@ public class EmailAddress {
 
 ----
 
-Door een <<emailvalueobject>> te gebruiken weet je op alle plekken waar je een EmailAddress instantie binnenkrijgt dat je gewoon veilig dit object kan gebruiken om een link te genereren, of een mail te versturen. Het was immers niet mogelijk om een instance te maken zonder langs je check in de constructor te komen!
+Door een <<emailvalueobject>> te gebruiken weet je op alle plekken waar je een EmailAddress instantie binnenkrijgt dat je gewoon veilig dit object kan gebruiken om een link te genereren, of een mail te versturen. Het was immers niet mogelijk om een instance te maken zonder langs je check in de constructor te komen!footnote:[Uiteraard zijn er altijd workarounds, bijv. in de reflectie-hoek, maar dan moet er ergens een developer-collega wel echt z'n best doen om je het leven zuur te maken. Laten we daar niet vanuit gaan.]
 
 Deze strategie staat ook wel bekend onder de slogan "Parse, don't Validate!" cite:[parse_dont_validate].
 
@@ -186,15 +186,13 @@ Een tweede essentiele eigenschap van een Value Object is dat het gaat om de waar
 
 Dit soort objecten (immutable, en puur op waarde vergelijkbaar) zijn veel simpeler te testen dan 'gewone' mutable objecten. Omdat ze niet kunnen wijzigen zijn er minder randgevallen, en is er minder testcode nodig om een goede coverage te behalen. Kortom, als je kan, is het raadzaam zoveel mogelijk van je domeinlogica op deze objecten te implementeren, dat scheelt je testcode.
 
-Het klassieke voorbeeld cite:[evans_ddd] gaat over blikken verf (mutable) die gemengd moeten worden. Daarbij is de menglogica op kleine Color Value-Objects geïmplementeerd, wat een stuk rustiger code-design oplevert. Bij ons vliegtuig-voorbeeld zou je bijv. bij het wijzigen van een boeking de BoekingsGegevens (value-object) van de huidige boeking kunnen vergelijken met de BoekingsGegevens van de gewenste boeking, om zo een verschilfactuur te genereren, en in één keer de juiste wijziging op de opgeslagen boeking te voltooien.
+Het klassieke voorbeeld cite:[evans_ddd] gaat over blikken verf (mutable) die gemengd moeten worden. Daarbij is de menglogica op kleine Color Value-Objects geïmplementeerd in plaats van op de verfblik-entities, wat een stuk rustiger code-design oplevert. Bij ons vliegtuig-voorbeeld zou je bijv. bij het wijzigen van een boeking de BoekingsGegevens (value-object) van de huidige boeking kunnen vergelijken met de BoekingsGegevens van de gewenste boeking, om zo een verschilfactuur te genereren, en in één keer de juiste wijziging op de opgeslagen boeking te voltooien.
 
 Uiteindelijk heeft Immutability natuurlijk en grens en moet er namelijk wel ergens iets veranderen in een database, en dat brengt ons bij...
 
 === Entities
 
-Deze kennen we! @Entity erboven, een Long'tje met @Id en @GeneratedValue en gaan met die banaan! 
-
-Was het leven maar zo mooi...
+Deze kennen we! @Entity erboven, een Long'tje met @Id en @GeneratedValue en gaan met die banaan! Was het leven maar zo mooi...
 
 Entities zijn objecten met een levensduur. Ze beginnen ergens, maken vanalles mee in hun bestaan, en eindigen tenslotte in een database, om het volgende request weer een nieuw rondje te maken. Wat een leven!
 
@@ -204,7 +202,6 @@ In een database heb je daarvoor een Identifier nodig. Iets dat een bepaald _ding
 
 Een entity is dus een object, aangewezen door een id, met een lifecycle, wiens state kan veranderen. Met state bedoelen we alle stukjes data die bij die entity horen; alle attributen in een taal als Java, C# of Python. Die veranderingen gebeuren in een OOP taal via public methods. Het is belangrijk dat die veranderingen altijd netjes gebeuren. Daarmee bedoelen we dat de regels van het object altijd gevolgd moeten worden: met een chique woord zijn objecten _invariant onder hun methodes_. Die invarianten wijzen dingen aan die altijd waar moeten zijn, zoals "het totaalbedrag van een bestelling moet gelijk zijn aan de optelsom van de delen". Hoewel zowel de bestelde onderdelen, als het totaalbedrag kunnen variëren, staat het feit dat die twee met elkaar kloppen vast, de regel is invariant.
 
-****
 Niet alle combinaties van state zijn geldig voor een object. Laten we als voorbeeld de Java ArrayList nemen. Het handige van een List ten opzichte van een gewone Array is dat je er zomaar objecten aan kan toevoegen. Een Array moet je elke keer met een bepaalde grootte aanmaken. De naam suggereert dat een ArrayList de List interface biedt met een Array op de achtergrond, en als we even onder de motorkap kijkenfootnote:[rechts-click op de ArrayList class en Go-To-Definition, in IntelliJ. Echt een aanrader!]
 
 [source, java]
@@ -218,9 +215,30 @@ Je ziet dat het size veld onafhankelijk wordt bijgehouden van de elementData arr
 
 De ArrayList class doet veel moeite om zo min mogelijk keren een nieuwe elementData array te maken. Dus als je elementen toevoegt, en er is geen ruimte meer in de array, dan maakt de ArrayList de nieuwe array 'ietsje groter dan nodig'. Op dezelfde manier laat de ArrayList met plezier wat plekjes in de array leeg als je iets removed. Het size veld moet dus los worden bijgehouden, en het zou echt _superverwarrend_ worden als het size veld niet exact klopt met hoeveel elementen er in de array zitten.
 
-Dit is wederom het principe van OOP encapsulatie. En dat is echt essentieel voor OOP als geheel, en DDD in het bijzonder.
+Een ander voorbeeld zie je in <<entityconsistent>>:
+[#entityconsistent]
+[source, java]
+----
 
-****
+public class Order {
+    private Money total = Money.zero(); //Money is in dit geval een value-object die afrondingscomplexiteit met doubles afvangt
+    private List<LineItems> items = new ArrayList<>();
+
+    public List<LineItems> getItems(){ return this.items; }
+    public Money getTotal(){ return total; }
+
+    public void addItem(LineItem item){
+        items.add(item);
+        total = total.add(item.getPrice());
+    }
+}
+----
+Het probleem hier is dat je items aan de order kan toevoegen (waardoor de prijs omhoog gaat), maar vervolgens buitenom _order.getItems().clear()_ (bijv.) kan aanroepen. Met als gevolg een order zonder items, maar *met* een prijs.
+
+* OF _getItems_ moet een Collections.unmodifiableList(this.items) returnen, zodat de collectie niet stiekem aangepast kan wordenfootnote:[Idealiter zouden we een Iterable<> kunnen returnen in Java, maar helaas, die zijn niet zo prettig in het gebruik. Je kunt er bijv. niet makkelijk overheen loopen. Andere talen hebben dit probleem minder, bijv. met de IEnumberable<> uit C#].
+* OF _getTotal_ moet elke keer vers z'n totaal berekenen. Als het kan is dit makkelijker, maar er zijn zat variaties waarin dit niet wenselijk is (omdat er bijv. extra kortingen zijn, of het heel duur is om de hele collectie uit de database te vissen).
+
+Dit is wederom het principe van OOP encapsulatie. En dat is echt essentieel voor OOP als geheel, en DDD in het bijzonder.
 
 Kortom, in een nette codebase gaan entities (en dit is feitelijk gewoon een basisprincipe van OOP) per public method van een nette (consistente) toestand, naar een volgende nette toestand, waarbij aan alle invarianten voldaan is. Dit is heel belangrijk, omdat we bij DDD persistentie graag zo ver mogelijk naar de achtergrond drukken. En dat doen we met Repositories.
 
@@ -253,13 +271,17 @@ public interface Repository<E, Id> {
 }
 ----
 
-De gedachte achter de collectie-abstractie is dezelfde als die van een garderobe. Je geeft je Entity (je jas) aan de Collection (de garderobe) en je krijgt een Id (een kaartje) terug om 'm later ooit weer op te halen. De vergelijking loopt een beetje mank omdat een persistentiestore vaak een kopie van je jas houdt, en je zelden aan een garderobe de opdracht kan geven om je jas te vernietigen (remove), maar in de basis is het vergelijkbaar. 
+De gedachte achter de collectie-abstractie lijkt een beetje op die van een garderobe. Je geeft je Entity (je jas) aan de Collection (de garderobe) en je krijgt een Id (een kaartje) terug om 'm later ooit weer op te halen. De vergelijking loopt een beetje mank omdat een persistentiestore vaak een kopie van je jas houdt, en je zelden aan een garderobe de opdracht kan geven om je jas te vernietigen (remove), maar in de basis is het vergelijkbaar. 
 
 Ter vergelijking, de Spring JpaRepository heeft bijna 40(!) methods EN een framework om custom-queries op basis van methode-namen te genereren, dus dat is een veeeeel uitgebreidere interface die ... niet echt meer dezelfde _simpele_ gedachte uitdrukt. 
 
 Een ander belangrijk detail is dat de repository nu nergens uitdrukt _wanneer_ entities worden opgeslagen. Vanuit het begrip van de Repository kun je een Entity uit de repository halen, wijzigingen uitvoeren op die Entity, en in principe mag je er vanuit gaan dat dit allemaal netjes opgeslagen wordt (want je entity zit in de repository, dus er is een persistentie-verplichting). In de praktijk zit er vaak een soort _flush_ methode bij die er voor zorgt dat die synchronisatie _nu_ gebeurd (In Spring doen we dit vaak met _@Transactional_, in plaats van expliciete flushes). 
 
 Al met al is het de bedoeling dat je ooit een Entity aan een Repository toevoegt, dat je je daarna geen zorgen over persistence meer hoeft te maken. Dit idee noemen we _Persistence Ignorance_ cite:[evans_ddd].
+
+===== Strongly-Typed Ids in Java & Spring
+
+
 
 ==== Factories
 
@@ -269,18 +291,34 @@ Flauw gezegd is een constructor eigenlijk een heel raar ding. Op een willekeurig
 
 Het is vaak de moeite waard om na te denken of je objecten niet natuurlijker ergens anders vandaan komen. Als we het cliché bestellingsvoorbeeld pakken, met een bidirectionele relatie tussen een Order en diens LineItems:
 
+[#constructors]
 [source, java]
+.Constructors overal
 ----
-Order o = new Order(klant);
-o.addItem(new LineItem(o, 12, product42));
-
-
+Klant zomaarEenKlant = new Klant("Bob");
+Order verseOrder = new Order(k);
+ //Twaalf stuks van product-id 42, whatever that is
+LineItem eersteItem = new LineItem(o, 12, product42);
+verseOrder.add(eersteItem);
 ----
+
+In het voorbeeld van <<constructors>> zien we dat alles met het handje aangemaakt wordt. Stel het is een nieuwe klant, dan is dat voor de klant nog enigszins logisch. In een standaard winkel-website komen klanten vaak van buiten het systeem. Die komen vanuit systeem-perspectief dan een beetje uit de lucht vallen. Maar daarna is het twijfelachtiger. De order zouden we kunnen starten met een simpele _zomaarEenKlant.startOrder();_ method, en het eerste item zouden we kunnen maken als _verseOrder.add(12, product42);_. 
+
+Het zijn hele kleine tweaks, maar het scheelt toch een paar parameters, en het kan je signaturen stabieler houden. Stel klanten hebben een bepaalde status (bijv. VIP klanten met extra korting), dan moet misschien 
+in een volgende versie de VIP-status op het LineItem gezet worden. Als je zelf overal de LineItem constructor aanroept zul je op alle plekken in je code die extra parameter moeten toevoegen. Maar als je de link al gelegd hebt tussen een Klant en diens Order (en daarmee de lineitems), dan kun je dit netjes op één plek aanpakken.
+
+Kortom door goed na te denken over waar je objecten vandaan komen krijg je nieuwe kansen om bepaalde business-rules in het domein te implementeren, en die plek een mooi naampje uit de Ubiquitous Language te geven; of dat nou een zware Factory-class-met-bijbehorend-design-pattern is, of een kleine method die een constructor voor je aanroept. De plek waar je vrij snel aan kan voelen of dit goed loopt is in je unit-tests. Vaak bestaan die uit een Arrange/Act/Assert opzet, en als het Arrange-gedeelte uit de hand loopt, dan is het misschien tijd om serieus werk te maken hoe makkelijker situaties in je applicatie opgezet kunnen worden.
 
 === Aggregates
 
-=== Overige Patterns
+Ook al is het voorbeeld zeer cliché, de Orders & LineItems laten een vrij standaard probleem zien: vaak willen we niet alleen dat één enkele entity consistent blijft, maar dat er een klein groepje entities samen consistent blijft. Laten we eerst een hele basale versie van dit probleem bekijken:
 
+
+Het probleem bij <<=>> is dat 
+
+==== Aggregate Roots
+
+=== Overige Patterns
 
 ==== Domain Services
 
