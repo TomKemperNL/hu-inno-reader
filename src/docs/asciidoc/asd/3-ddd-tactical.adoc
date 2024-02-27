@@ -121,7 +121,9 @@ Als je twee van die DateTime objecten hebt, die toevallig hetzelfde moment in ti
 
 Een tweede doel waar Value Objects zich goed voor lenen is om duidelijk aan te geven waar een object voor bedoeld is. Bijv. dat die _long_ puur een KlantId is, en niet gebruikt kan worden om een Vlucht of een Boeking op te halen.
 
+[#stronglytypedid]
 [source, java]
+.Strongly Typed Id
 ----
 public Klant processProfileForm(
         KlantId id, 
@@ -227,8 +229,8 @@ public class Order {
     public List<LineItems> getItems(){ return this.items; }
     public Money getTotal(){ return total; }
 
-    public void addItem(LineItem item){
-        items.add(item);
+    public void addItem(Product item){
+        items.add(new LineItem(this, item));
         total = total.add(item.getPrice());
     }
 }
@@ -279,6 +281,7 @@ Een ander belangrijk detail is dat de repository nu nergens uitdrukt _wanneer_ e
 
 Al met al is het de bedoeling dat je ooit een Entity aan een Repository toevoegt, dat je je daarna geen zorgen over persistence meer hoeft te maken. Dit idee noemen we _Persistence Ignorance_ cite:[evans_ddd].
 
+[#strongids]
 ===== Strongly-Typed Ids in Java & Spring
 
 
@@ -311,18 +314,120 @@ Kortom door goed na te denken over waar je objecten vandaan komen krijg je nieuw
 
 === Aggregates
 
-Ook al is het voorbeeld zeer cliché, de Orders & LineItems laten een vrij standaard probleem zien: vaak willen we niet alleen dat één enkele entity consistent blijft, maar dat er een klein groepje entities samen consistent blijft. Laten we eerst een hele basale versie van dit probleem bekijken:
+Ook al is het voorbeeld zeer cliché, de Orders & LineItems laten een vrij standaard situatie zien: we hebben niet één enkele entity, maar meerdere. Laten we een kleine variatie van dit probleem bekijken:
+
+[#inschrijvingen]
+[plantuml, "inschrijvingen", svg]
+.Inschrijvingen
+----
+class Course {
+    courseId: CourseId
+    maxEnrolments: int
+}
+
+class Enrolment {
+    enrolmentDate: LocalDateTime
+    
+    +constructor(course, student)
+}
+
+class Student {
+    studentnr: StudentNr
+}
+
+Enrolment --> "1" Student
+Enrolment --> "1" Course
+
+----
+
+In <<inschrijvingen>> zien we drie entiteiten. De aanwezigheid van _maxEnrolments_ op _Course_ suggereert dat er een maximaal aantal inschrijvingen voor een cursus kan zijn. Zonder extra documentatie weten we natuurlijk eigenlijk niet hoe hard deze eis is. In sommige systemen mag er absoluut geen overinschrijving plaatsvinden, omdat er bijv. regels vanuit de brandveiligheid zijn. In andere systemen zijn de lokalen misschien groot zat, en willen we best overinschrijving toestaan, maar gebruiken we de _maxEnrolment_ om de cursus in één-of-ander overzicht een waarschuwingskleurtje te geven, omdat de kwaliteit van het onderwijs dan in het geding is. Het ligt er altijd een beetje aan. In dit voorbeeld gaan we er vanuit dat de eis hard is. 
+
+De groep entiteiten die samen aan bepaalde regels moeten voldoen noemen we een aggregatefootnote:[Een aggregaat in het Nederlands is meestal een nood-generator voor electriciteit, maar het heeft ook een scheikundige betekenis van 'samenklontering'. We doelen hier op de tweede betekenis. Aggregeren is ook wel een synoniem voor 'samenvoegen'. In deze tekst gebruiken we het woord gewoon op z'n Engels. Net als _Class_ en _Object_ en allerhande andere yargon termen.]
+
+Een gevolg van deze eis tot consistentie is dat aggregates ook een minimale eenheid van transacties (zie <<transacties>>) aangeven. Als een groepje objecten altijd samen consistent moeten zijn, kunnen we niet maar de helft ervan aanpassen zonder de andere helft op z'n minst te checken (hoe zouden we anders fouten kunnen bespeuren). Dus in een transactie zitten altijd hele groepen van entiteiten. Andersom is het ideaal als één transactie maar één aggregate aanpast, maar deze eis is iets minder hard. 
+
+Deze koppeling tussen aggregates en transacties is essentieel: hoe groter je aggregate, hoe groter je transactie; hoe groter je transactie, hoe meer problemen met concurrency. Hoe kleiner je aggregate, hoe kleiner je transactie; hoe kleiner je transactie, hoe meer problemen met gelijktijdige wijzigingen (concurrency). Er is dus niet zoiets als 'de correcte aggregate-grootte' die je via een of ander Byzanthijns proces kan uitrekenen: het is een ontwerpbeslissing. 
+
+Laten we dit wat concreter maken. In <<inschrijvingen>> hebben we een simpel eerste model getekend. Als we dit in onze standaard stack van Java/JPA/Spring zouden implementeren, dan zouden we drie repositories hebben (één voor elke entity), en puur een paar eenvoudige _@Many-To-One_ associaties op die entities. Als we echter kijken naar hoe-goed-dit-werkt dan zien we op basis van onze _maxEnrolments_ eis al direct één probleem: er is geen class in dit diagram dit onze eis kan checken: Course weet niet hoeveel enrolments die heeft. En Enrolment is er maar ééntje, die kan niet bij de andere Enrolments. Dat betekent dat we de verantwoordelijkheid voor deze regel omhoog moeten delegeren naar bijv. een applicatie-service-laag. Dat is altijd een mogelijkheid, maar niet heel domein-gedreven. Dit soort regels (en allerlei andere zaken die we met encapsulatie beschermen) noemen we ook wel 'invarianten', omdat ze altijd waar moeten zijn: het variëert niet of ze gelden, ze gelden altijd.
 
 
-Het probleem bij <<=>> is dat 
+[#inschrijvingen2]
+[plantuml, "inschrijvingen2", svg]
+.Inschrijvingen Aggregate
+----
+class Course {
+    courseId: CourseId
+    maxEnrolments: int
+
+    +enrolstudent(student)
+}
+
+class Enrolment {
+    enrolmentDate: LocalDateTime
+}
+
+class Student {
+    studentnr: StudentNr
+}
+
+Course --> "0..max" Enrolment
+Enrolment --> "1" Student
+----
+
+In <<inschrijvingen2>> zien we een voorbeeld waar Course wel in staat is om z'n eigen invarianten te beschermen. Course kan nu prima er voor zorgen dat er niet boven de max. inschrijvingen uit wordt gegaan. In dit voorbeeld hebben we (in Java/JPA/Spring) geen repository voor _Enrolment_, en zit er op de _@One-to-Many_ een _Cascade_ instructie. Dat betekent dat wanneer we een _Course_ opslaan of deleten dat automatisch ook de _Enrolments_ worden opgeslagen, of gedelete. Waarschijnlijk willen we geen automatische cascade van _Enrolment_ naar _Student_ omdat we niet bij het verwijderen van een cursus alle studenten die er voor ingeschreven staan automatisch willen verwijderenfootnote:[In de praktijk kun je echter cascades vaak nogal fijnmazig configureren (wel inserts, maar geen deletes, en sommige updates, bijv.) dus hoewel een _Cascade(All)_ in JPA een vrij betrouwbare aanduiding van een aggregate is, kan dit soms genuanceerder zijn].
+
+Onze mogelijkheden om consistentie in het domein te beschermen zijn groter geworden. Maar als we nu een cursusinschrijving willen doen moeten we eerst de hele cursus ophalen, met alle inschrijvingen. De transactiegrens is groter, dus er kunnen niet op exact hetzelfde moment twee studenten zich voor dezelfde cursus inschrijven. En onze mappings zijn ook nog eens (een klein beetje) complexer. Dus hoewel <<inschrijvingen2>> waarschijnlijk in 90% van de gevallen de juiste keuze is, is er ook altijd iets te zeggen voor het alternatief (en dan dus de consistentie-eisen 'elders' oplossen).
+
+****
+En als dat je niet overtuigt dat het altijd een ontwerpafweging is, dan zou ik je aanraden om een extra eis in dit kleine modelletje te verwerken: een student heeft ook een maxEnrolments. In principe mogen studenten max. voor 4 cursussen ingeschreven staan (zodat je niet enorme herkansingsballen krijgt), maar een SLBer mag deze limiet op een per-student-basis aanpassen (voor bijv. die ene student die eigenlijk alles al weet, maar nog een boel eerstejaarsvakken heeft open staan). Dan wordt het ineens tricky om te bepalen hoe je dit netjes in een Domein-Driven stijl modelleert.
+
+Precies deze eis heeft sommige er toe geleid om heel de notie van aggregates het raam uit te gooien. In cite:[pellegrini_killaggregate] heeft Pellegrini een mooi betoog over hoe dit tot problemen, oplossingen en verwarringen kan leiden. Persoonlijk ben ik nog niet overtuigd, maar het is leuk om over na te denken.
+
+-Tom
+****
+
+//TODO: Dit is echt te kort door de bocht
+Tot slot nog even over die Student. Stel we zijn bezig met een Course-usecase. Dan is het zeer onwaarschijnlijk dat we methods als _setName(...)_ op Student zouden willen kunnen aanroepen. In de Course Aggregate is het dus heel redelijk mogelijk om Student niet als een Entity, maar als een Value-Object te behandelen. We zijn niet geïnteresseerd in Student als wijzigbaar ding, nee we zijn vooral geïnteresseerd in _Student_ als referentie naar een student. Een beetje vergelijkbaar met <<stronglytypedid>>, maar dan met net ietsje bredere value-objects. Hieruit volgt het dringende advies dat Aggregates nooit direct wijzen naar andere Aggregates. In plaats van een referentie te nemen naar de andere Entity zelf kun je dan een referentie nemen naar diens Id.
+
+Als dit echt niet praktisch is, dan kun je in een OO-taal als Java er vaak ook nog voor kiezen om een Read-only-interface te maken, en die in je getters te exposen. Het probleem dat we willen voorkomen is dat je kan Aggregate-hoppen, door middel van _agg1.getX().getY().setZ(..)_ paden, want dan wordt het beschermen van die consistentie zo onoverzichtelijk.
 
 ==== Aggregate Roots
+
+Aggregates gaan dus over het beschermen van invarianten in groepjes van objecten in de context van transacties. Als je die zin zonder blikken of blozen kan lezen dan zijn we al een heel eind.
+
+Het beschermen van die consistentie is erg complex als alle onderdelen van een aggregate los van elkaar kunnen veranderen. Stel we hebben weer onze standaard Order->OrderLine->Product geval:
+
+[#trickysetters]
+[source, java]
+----
+
+Customer pete = ...; //eeergens komt Pete vandaan
+Product newBBQ = ...; //evenzo deze mooie BBQ
+
+Order petesOrder = pete.startOrder();
+// Pete bestelt honderden dingen!
+petesOrder.add(newBBQ);
+
+//Zoveel dingen dat deze getTotal() niet over alle items kan loopen
+//maar dat we tijdens het toevoegen het totaal moeten bijhouden
+Money firstTotal = order.getTotal();
+
+//Dan is het heel vervelend als dit zou kunnen:
+newBBQ.setPrice(50);
+----
+
+Het voorbeeld in <<trickysetters>> is een beetje gemaakt. Meestal zijn bestellingen dusdanig klein dat je best alles kan herberekenen in een getTotal()-achtige methode. Maar laten we even aannemen dat dit niet zo is (en in een latere versie een beter voorbeeld zoeken).
+In dit voorbeeld is _Order_ onze aggregate. En we moeten consistent zijn over de _Order_, de hoeveelheid _LineItems_, en de (prijzen van) _Products_.
+
+Om dit idee makkelijker te maken is het bij aggregates vaak wijs om één enkele entity aan te merken als de aggregate-root. Deze aggregate-root is de enige plek waar dingen in de aggregate gemuteerd kunnen worden, en zo zou die _setPrice_ onmogelijk zijn. Kortom een aggregate-root is de eindverantwoordelijke voor het feit dat je aggregate consistent blijft. Een standaard manier om dit te doen is er voor te zorgen dat je geen referenties uitgeeft aan entities binnen je aggregate. Als andere classes iets van je willen weten, dan geef je ze dus nooit je eigen entities terug, maar value-objects gemaakt uit die entities. 
 
 === Overige Patterns
 
 ==== Domain Services
 
+Kort door de bocht: we willen als het even kan zo veel mogelijk functionaliteit van de applicatie op onze Entities en Value-Objects implementeren.
+
 ==== Domain Events
 
-asdf
+
 
