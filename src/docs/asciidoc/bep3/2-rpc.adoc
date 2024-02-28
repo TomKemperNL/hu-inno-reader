@@ -87,10 +87,34 @@ REST als een vorm van RPC zien is helaas een beetje verwarrend. Bij REST willen 
 
 Deze stijl van ontwikkelen, waarbij de 'dingen' (resources) centraal staan, en de HTTP-verbs (GET,PUT, POST, etc.) de mogelijke handelingen voorstellen is relatief flexibel en eenvoudig te doorgronden.
 
-Dit kun je contrasteren met een RPC-API, waarbij je bijv. een _POST_ doet naar _/persons/maaknieuw_, of _/updateperson_, of desnoods zoiets als _/api_, waarbij dan de requestbody zoiets bevat als _{"method": "updateperson"}_. Deze stijl van API noemt men een RPC-API, omdat je feitelijk ook qua contractstijl expliciet een bepaalde method (als synoniem ) in de andere service aanroept. 
+Dit kun je contrasteren met een RPC-API, waarbij je bijv. een _POST_ doet naar _/persons/maaknieuw_, of _/updateperson_, of desnoods zoiets als _/api_, waarbij dan de requestbody zoiets bevat als _{"method": "updateperson"}_. Deze stijl van API noemt men een RPC-API, omdat je feitelijk ook qua contractstijl expliciet een bepaalde method (als synoniem van procedure) in de andere service aanroept. 
 
-Het is onfortuinlijk dat we dus twee verschillende betekenissen van het woord RPC door elkaar gebruiken. In het oude geval was RPC het tegenovergestelde van de Resource-Oriented-stijl van REST (misschien was Procedure-Oriented een mooier woord geweest). In dit vak is RPC als communicatiewijze een alternatief van Messaging, we doelen daarmee dus op een process waarbij een call naar een REST service wordt ge-encapsuleerd als (bijna?) een lokale call.
+Het is onfortuinlijk dat we dus twee verschillende betekenissen van het woord RPC door elkaar gebruiken. In het oude geval was RPC het tegenovergestelde van de Resource-Oriented-stijl van REST (misschien was Procedure-Oriented een mooier woord geweest). In dit vak is RPC als communicatiewijze een alternatief van Messaging, we doelen daarmee dus op een process waarbij een call naar een externe  service wordt ge-encapsuleerd als (bijna?) een lokale call.
 
+
+===== Task-based REST
+
+Het is relatief eenvoudig om CRUD services (services die create, read, update & delete functionaliteit aanbieden) op entities via REST aan te bieden. Je koppelt een controller aan een Repository. Met een POST save je dan een nieuwe entity, met een GET kun je een find method aanroepen, met een PUT wederom een (updatende) save, en je zult nooit raden wat we met DELETE doen...
+
+Maar wat doe je als de applicatie ingewikkelder wordt?
+
+Stel we hebben groothandel, die containerladingen vol electronica over de Atlantische Oceaan verscheept en een winkelketen als klant die zaken inkoopt. Zo'n bedrijf heeft vaak enorm veel contacten over de hele wereld, en zou het best fijn vinden om als service aan te kunnen bieden dat bedrijven hun bestelling nog een klein beetje kunnen aanpassen (voor een extra bedrag natuurlijk).
+
+Dus stel winkelketen MM merkt dat het net teveel TV's heeft besteld, maar ja, die zijn al onderweg met de container. Er is een best goede kans dat de groothandel die Tvs binnen afzienbare tijd bij één van diens andere klanten kwijt zou kunnen (misschien voor een kleine korting, maar kleiner dan het bedrag dat MM extra betaald). En als het allemaal niet lukt voordat de schepen uitgeladen moeten worden, tja, dan heeft winkelketen MM pech en moet alsnog de originele factuur voldaan worden.
+
+In dit soort gevallen ga je er waarschijnlijk niet komen met een standaard entity-based REST-ful model. Dan heb je waarschijnlijk een resource _/orders_, en als je dan dus iets minder TVs wil bestellen, wat doe je dan?
+
+Je zou kunnen proberen te gaan _PUT_ten of _PATCH_en op bijv. _/orders/764_, maar de verwachting is dan dat je die resource aanpast, en dat je dan vervolgens een _GET_ naar diezelfde URL kan doen, om direct het resultaat te zien.
+
+Een veel gebruikte oplossing in de praktijk is dat je de neiging om alles als resources te modelleren even loslaat. En dan heb je toch een paar 'Remote Procedure'-oriented urls, zoals bijv. _/orders/764/requestOrderChange_. Daar kun je dan naartoe _POST_en (want _POST_ heeft de minste regels), en dan krijg je een result terug (de REST regels hebben we toch al opgegeven, dus je kunt doen wat je wil). Aangezien het overduidelijk geen RESTful url is, is er ook geen verwachting dat een _GET_ naar _/orders/764/requestOrderChange_ iets nuttigs gaat opleveren.
+
+Maar kan het niet netter? Een relatief simpele manier is om er 'even anders tegenaan te kijken'. Nu maken we van onze entities de resources, maar wat als we juist van onze usecases de resources maken? We zouden 'de verzochte wijzigingen aan een order' als resource kunnen bestempelen: _/orders/764/orderChanges_. Als dit de resource is, dan kunnen wijzigingsverzoeken ge_POST_ worden, vervolgens krijgen we volgens RESTful standaarden een Location-header terug, en kunnen we op zeg _/orders/764/changes/1_ kijken wat de status is van die wijziging. We zouden 'm zelfs kunnen proberen te _PUT_en (nog meer TVs!) of _DELETE_n (toch maar geen extra TVs). Kortom, niet alleen de originele usecase heeft een plekje gekregen, maar ons ontwerp bedelt ons om nog meer handige functionaliteit te implementeren!
+
+Uiteraard zullen er altijd een paar vreemde eenden overblijven. Het meest bekende voorbeeld zien we op urls als _/login_ en _/logout_. Dit heeft z'n grondvesten in het feit dat naast de REST-structuur, we ook nog de klassieke HTML-paginas hebben. Daar kan men een formulier (<form>) definiëren, en dat vervolgens opsturen naar een url middels een POST. De login use-case past prima in zo'n 'formulier-verwerkings'-stroom, maar niet in een standaard Resource-oriented setup. We POSTen er welliswaar iets naartoe, maar het voelt niet logisch om vervolgens een lijst van logins te krijgen als je een _GET_ doet naar _/login_. 
+
+Het organiseren van je applicatie in resources (zowel entities, als usecases, of acties) is dus een goede richtlijn, en er zullen altijd een paar uitzonderingen blijven. Soms heb je ook gewoon meer tijd nodig om de juiste resources te ontdekken, dus blijf vooral niet geforceerd proberen overal resources van te maken. Gebruik het als het past. 
+
+===== Richardson Maturity Model
 
 ==== SOAP & GRPC
 
