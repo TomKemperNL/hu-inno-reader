@@ -104,17 +104,35 @@ Dus stel winkelketen MM merkt dat het net teveel TV's heeft besteld, maar ja, di
 
 In dit soort gevallen ga je er waarschijnlijk niet komen met een standaard entity-based REST-ful model. Dan heb je waarschijnlijk een resource _/orders_, en als je dan dus iets minder TVs wil bestellen, wat doe je dan?
 
-Je zou kunnen proberen te gaan _PUT_ten of _PATCH_en op bijv. _/orders/764_, maar de verwachting is dan dat je die resource aanpast, en dat je dan vervolgens een _GET_ naar diezelfde URL kan doen, om direct het resultaat te zien.
+Je zou kunnen proberen te gaan PUTten of PATCHen op bijv. _/orders/764_, maar de verwachting is dan dat je die resource aanpast, en dat je dan vervolgens een GET naar diezelfde URL kan doen, om direct het resultaat te zien.
 
-Een veel gebruikte oplossing in de praktijk is dat je de neiging om alles als resources te modelleren even loslaat. En dan heb je toch een paar 'Remote Procedure'-oriented urls, zoals bijv. _/orders/764/requestOrderChange_. Daar kun je dan naartoe _POST_en (want _POST_ heeft de minste regels), en dan krijg je een result terug (de REST regels hebben we toch al opgegeven, dus je kunt doen wat je wil). Aangezien het overduidelijk geen RESTful url is, is er ook geen verwachting dat een _GET_ naar _/orders/764/requestOrderChange_ iets nuttigs gaat opleveren.
+Een veel gebruikte oplossing in de praktijk is dat je de neiging om alles als resources te modelleren even loslaat. En dan heb je toch een paar 'Remote Procedure'-oriented urls, zoals bijv. _/orders/764/requestOrderChange_. Daar kun je dan naartoe POSTen (want POST heeft de minste regels), en dan krijg je een result terug (de REST regels hebben we toch al opgegeven, dus je kunt doen wat je wil). Aangezien het overduidelijk geen RESTful url is, is er ook geen verwachting dat een GET naar _/orders/764/requestOrderChange_ iets nuttigs gaat opleveren.
 
-Maar kan het niet netter? Een relatief simpele manier is om er 'even anders tegenaan te kijken'. Nu maken we van onze entities de resources, maar wat als we juist van onze usecases de resources maken? We zouden 'de verzochte wijzigingen aan een order' als resource kunnen bestempelen: _/orders/764/orderChanges_. Als dit de resource is, dan kunnen wijzigingsverzoeken ge_POST_ worden, vervolgens krijgen we volgens RESTful standaarden een Location-header terug, en kunnen we op zeg _/orders/764/changes/1_ kijken wat de status is van die wijziging. We zouden 'm zelfs kunnen proberen te _PUT_en (nog meer TVs!) of _DELETE_n (toch maar geen extra TVs). Kortom, niet alleen de originele usecase heeft een plekje gekregen, maar ons ontwerp bedelt ons om nog meer handige functionaliteit te implementeren!
+Maar kan het niet netter? Een relatief simpele manier is om er 'even anders tegenaan te kijken'. Nu maken we van onze entities de resources, maar wat als we juist van onze usecases de resources maken? We zouden 'de verzochte wijzigingen aan een order' als resource kunnen bestempelen: _/orders/764/orderChanges_. Als dit de resource is, dan kunnen wijzigingsverzoeken gePOST worden, vervolgens krijgen we volgens RESTful standaarden een Location-header terug, en kunnen we op zeg _/orders/764/changes/1_ kijken wat de status is van die wijziging. We zouden 'm zelfs kunnen proberen te PUTen (nog meer TVs!) of DELETEn (toch maar geen extra TVs). Kortom, niet alleen de originele usecase heeft een plekje gekregen, maar ons ontwerp bedelt ons om nog meer handige functionaliteit te implementeren!
 
-Uiteraard zullen er altijd een paar vreemde eenden overblijven. Het meest bekende voorbeeld zien we op urls als _/login_ en _/logout_. Dit heeft z'n grondvesten in het feit dat naast de REST-structuur, we ook nog de klassieke HTML-paginas hebben. Daar kan men een formulier (<form>) definiëren, en dat vervolgens opsturen naar een url middels een POST. De login use-case past prima in zo'n 'formulier-verwerkings'-stroom, maar niet in een standaard Resource-oriented setup. We POSTen er welliswaar iets naartoe, maar het voelt niet logisch om vervolgens een lijst van logins te krijgen als je een _GET_ doet naar _/login_. 
+Uiteraard zullen er altijd een paar vreemde eenden overblijven. Het meest bekende voorbeeld zien we op urls als _/login_ en _/logout_. Dit heeft z'n grondvesten in het feit dat naast de REST-structuur, we ook nog de klassieke HTML-paginas hebben. Daar kan men een formulier (<form>) definiëren, en dat vervolgens opsturen naar een url middels een POST. De login use-case past prima in zo'n 'formulier-verwerkings'-stroom, maar niet in een standaard Resource-oriented setup. We POSTen er welliswaar iets naartoe, maar het voelt niet logisch om vervolgens een lijst van logins te krijgen als je een GET doet naar _/login_. 
 
 Het organiseren van je applicatie in resources (zowel entities, als usecases, of acties) is dus een goede richtlijn, en er zullen altijd een paar uitzonderingen blijven. Soms heb je ook gewoon meer tijd nodig om de juiste resources te ontdekken, dus blijf vooral niet geforceerd proberen overal resources van te maken. Gebruik het als het past. 
 
 ===== Richardson Maturity Model
+
+In Restful Web Services cite:[richardson_webservices] geeft Richardson een mooi overzicht van de filosofie achter REST. De meest beroemde toevoeging is echter het Richardson maturity model cite:[richardson_maturity]. Flauw gezegd heeft elke API een bepaald level:
+
+[cols="1,2"]
+|===
+| Level 0
+| Urls betekenen niets. HTTP verbs ook niet. Maar hey, het werkt. Denk aan een enkel _/api_ endpoint, waar je alles naartoe _POST_
+
+| Level 1
+| Urls betekenen iets, maar qua HTTP verbs doen we maar wat. (vaak de klassieke 'alles is een POST'-services)
+
+| Level 2
+| Urls betekenen iets, en HTTP verbs betekenen iets. Dit is onze standaard tot nu toe.
+
+| Level 3
+| Level 2 + Hypermedia.
+|===
+
 
 ==== SOAP & GRPC
 

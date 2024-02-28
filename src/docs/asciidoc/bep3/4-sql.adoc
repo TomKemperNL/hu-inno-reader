@@ -2,7 +2,7 @@
 
 === Relationeel model
 
-[#transactions]
+[#transacties]
 ==== ACID Transacties 
 
 ==== Normalisatie

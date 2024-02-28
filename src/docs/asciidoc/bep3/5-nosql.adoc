@@ -2,6 +2,7 @@
 
 === K/V
 
+[#redis]
 ==== Redis
 
 === Object / Document
