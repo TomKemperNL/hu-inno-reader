@@ -1,4 +1,4 @@
-== RDBMS & SQL
+== Consistency & RDBMS
 
 === Relationeel model
 

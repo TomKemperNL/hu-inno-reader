@@ -1,18 +1,105 @@
 == Messaging
 
-Message soorten
+Naast Remote-Procedure Calls is Messaging de andere integratie-stijl waar we in deze cursus dieper op in gaan. Zoals besproken in <<coupling>> willen we de Spatiële en Temporele coupling in onze applicatie beperken.
+
+Een Messaging oplossing kun je het beste voorstellen als het 'klaarleggen van een bericht op een bekende plek'. Beetje zoals in spionnenfilms, bij een parkbankje legt spion A iets klaar, en uren/dagen later pakt spion B het op. Zo hoeven de twee spionnen elkaar niet te kennen, en kunnen ze elkaar ook niet verraden. En uiteraard is het niet de bedoeling dat ze er gelijktijdig zijn, dat zou veel te verdacht zijn.
+
+Technisch gezien, als je bijv. met Wireshark het netwerk-verkeer gaat analyseren, werkt een RPC-call (zoals een HTTP webservice call) ook met 'berichten', maar dan 'packets' genoemd, maar omdat er allerlei protocollen (TCP of UDP) bovenop liggen _gedraagt_ het zich niet zo. Je stuurt een request, en je verwacht een response, anders krijg je een Exception.
+
+Met Messaging omarmen we juist deze simpliciteit. We leggen ergens een bericht neer, en gaan er vanuit dat er vast wel iemand (of meerdere) zijn die er vervolgens iets mee doen.
+
+=== Asynchroniteit
+
+Het lastige aan deze manier van werken is dat deze manier asynchroon is. Laten we iets preciezer zijn wat we daarmee bedoelen. Een systeem is 'synchroon' als de verschillende computers/processen in dat systeem allemaal in gelijke tred marcheren. Hiermee bedoelen we dat het systeem zich gedraagt alsof er een gedeelde klok is, en dat ze elke tik van die klok een actie ondernemen (die actie mag 'niets-doen-en-wachten' zijn) cite:[tanenbaum_distributed_2017].
+
+Dat is nog steeds een beetje vaag, dus laten we een RPC call als voorbeeld nemen:
+
+[cols="1,1,1"]
+|===
+| Tijd
+| Client
+| Server
+
+| t+0
+| Client stuurt GET /Students
+| ...wachten...
+
+| t+1
+| ...wachten...
+| Server ontvangt GET /Students
+
+| t+2
+| ...wachten...
+| Server verwerkt GET /Students
+
+| t+3
+| ...wachten...
+| Server verstuurt Response
+
+| t+4
+| Client ontvangt Response
+| ...wachten...
+
+|===
+
+Dit ziet er in Java uit als:
+
+[source, java]
+----
+RestTemplate template = new RestTemplate();
+Student[] students = template.getForEntity("https://example.org/students", Student[].class);
+//Doe iets met students
+----
+
+De reden dat dit werkt is dat de Client _zeker weet_ dat nadat hij het request heeft verstuurd, dat de server 'tikken van de klok' krijgt om een antwoord te formuleren.
+
+Laten we dit vergelijken met een bekend asynchroon proces:
+
+[source, javascript]
+----
+//NIET: let students = fetch("https://example.org/students");
+//maar:
+fetch("https://example.org/students").then(students => {
+    //Doe iets met students
+});
+console.log('dit wordt direct geprint, waarschijnlijk nog voordat de response ontvangen is');
+----
+
+In Javascript is fetch een asynchroon proces. Met een fetch-instructie in ons script instrueren we de browser om namens ons script een request te sturen, maar gaan we _direct_ door met de volgende regel code. De reden is dat we geen aannames hebben over gedeelde klokken met de Browser (die het echte request voor ons stuurt) of de Server, *en* dat we in Javascript maar 1 executiethread hebben. We hebben geen idee hoe lang dat request er over gaat doen, en zolang dat request (en diens response) onderweg is, hebben we geen data. Dat zou 1 'tik van de klok' kunnen duren, maar ook 100, of 1000. En gegeven dat we in Javascript maar 1 executiethread hebben, kunnen we er niet op wachten (anders zou onze browser vastlopenfootnote:[De voorganger van Fetch, XMLHttpRequest, kun je in synchrone modus zetten. Probeer dat eens, dan zie je hoe ernstig je browser vastloopt.]). Dus in plaats van dat we wachten op een antwoord _moeten_ we direct door. Java kan dit probleem omzeilen met meerdere Threads.
+
+Uiteraard willen we in Javascript ook iets met de response kunnen doen. Dus in plaats van dat onze code op de response wacht, sturen we een stukje van onze code met de fetch-instructie (aan de Browser) mee. Met het meesturen van deze functie instrueren we onze Browser om een request te sturen EN de meegegeven functie (een 'callback') uit te voeren wanneer de response eindelijk terugkomt (de meegegeven functie wordt niet meegestuurd met het request uiteraard).
+
+Voor verdere details over hoe dit in Javascript werkt verwijzen we je naar cite:[simpson_knowjs_perf].
+
+Messages werken dus ook asynchroon, en dat is qua programmeermodel even wennen:
+[source, java]
+----
+//Deze injecteren we via de constructor of @Autowired
+RabbitTemplate template;
+
+template.convertAndSend("destination-queue", new ExampleMessage(...));
+//De message is nu bij RabbitMQ afgeleverd, 
+//maar verder kun je geen aannames doen.
+----
+
+Je zult dus een software-ontwerp moeten hebben waarbij het niet essentieel is om zeker te weten dat op de volgende regel het bericht verwerkt is. Het is geen synchroon-zwemmen, je kunt er niet op rekenen wat de andere applicaties in het systeem doen.
+
+=== Message anatomie
+
+Een message bestaat (net als een HTTP request) uit een Header met allerhande metadata en een Body. Metadata zijn zaken zoals hoe vaak de message al afgeleverd is, welke user 'm gemaakt heeft, hoe geheim het bericht is, etc. De body is puur een String, of rauwe bytes (bijv. een object, tot JSON geserializeerd). De header is meer voor allerhande messaging frameworks, en niet iets waar we regelmatig als applicatie-programmeur mee omgaan.
+
+De vier berichtsoorten die we onderscheiden in deze cursus (https://thehonestcoder.com/types-of-messages-in-message-driven-systems/[Versockas 2022]):
+//TODO: Iets meer standaard Citation required! 
 
 * Command
 * Query
 * Document
 * Event
 
-header vs body
-
-=== Asynchroniteit
 
 
-=== Queues
+
+=== Brokers, Busses & Queues
 
 === RabbitMQ
 

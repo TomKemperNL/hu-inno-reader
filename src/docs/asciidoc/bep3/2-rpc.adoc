@@ -136,7 +136,7 @@ In Restful Web Services cite:[richardson_webservices] geeft Richardson een mooi 
 De gedachte achter HatEoAS, een verschrikkelijke afkorting die staat voor Hypermedia as the Engine of Application State, is precies dezelfde stap als van Text naar Hypertext (de HT van HTTP): Text, of Media (zoals JSON, XML, etc.) is tof, maar het wordt pas echt tof (hypertof, zeg maar) als de stukken tekst en data naar elkaar gaan verwijzen. Dit is de basis van het toch best wel succesvolle 'World Wide Web'.
 
 ****
-Persoonlijk heb ik soms enigszins moeite met REST level 3. Er is absoluut niets tegen een collectietje links in je response-documenten. En als je moet kiezen voor een (publiek!) id voor je entity is vaak "customerid: 3785" een stuk minder informatief dan "customerid: https://myapi.example.org/customers/3785". Die tweede optie kost een stuk meer bytes, maar elke client weet dan ook precies waar verdere informatie gezocht kan worden.
+Persoonlijk heb ik soms enigszins moeite met REST level 3. Er is absoluut niets tegen een collectietje links in je response-documenten. En als je moet kiezen voor een (publiek!) id voor je entity is vaak "customerid: 3785" een stuk minder informatief dan customerid: https://myapi.example.org/customers/3785. Die tweede optie kost een stuk meer bytes, maar elke client weet dan ook precies waar verdere informatie gezocht kan worden.
 
 Aan de andere kant heb je dan weer vrij pittige standaarden als https://jsonapi.org/[JSON:API]. Deze standaarden zorgen er voor dat je allerlei randgevallen netjes kan afhandelen, maar de prijs die je betaalt is wel dat je ... nouja... vrij lelijke JSON returnt. En het is me niet altijd direct duidelijk waarom dat steekt? Waarom zou ons serializatie-format mooi moeten zijn? Maar steken doet het.
 

@@ -46,3 +46,13 @@ Dit gaat in elk geval een zekere mate van bewustwording inhouden wat voor _ander
 
 Het gaat in elk geval niet over het reduceren van Software Development tot "Jira-ticket-erin, Software-eruit".
 
+=== Verantwoording HBO-I
+
+Op moment van schrijven wordt dit getoetst middels een vrije project-structuur. Kleine teams van studenten bouwen elk verschillende gedistribueerde systeempjes gekoppeld aan een centraal thema. En vervolgens integreren we de individuele systemen tot één groot systeem (nouja, dat proberen we, het gaat om de problemen die dit oplevert). 
+
+Het is de bedoeling dat Gedistribueerde Systemen Niveau 3 inhouds-complexiteit levert voor Software Realiseren. We bouwen een systeem bestaande uit meerdere applicaties, en schaalbaarheid is één van de dimensies die we behandelen. We willen expliciet ook een evolueerbaar systeem maken, dus met evt. regressies moet ook rekening gehouden worden.
+In de cursus maken we constant onderscheid tussen hoe je de applicatie technisch werkend krijgt, en daarna hoe je het volgens standaard design-patterns netjes houdt.
+
+Evenzo moet Gedreven Ontwerpen Niveau 3 inhouds-complexiteit leveren voor Software Ontwerpen / Analyseren. Bij het koppelen van de verschillende systemen moet er kritisch gekeken worden naar de (vaak conflicterende) wensen van de verschillende teams, alsmede de requirements van de externe gebruikers (verwoord door de docent). Deze bestaande systemen moeten geïntegreerd worden, en waar nodig vervangen/aangevuld met nieuwe services. Met NoSQL wordt het noodzakelijk architectuur op data-verwerking toe te passen. Door expliciet vanuit verschillende perspectieven te testen wordt het hele systeem beschouwd.
+
+De Context-complexiteit van deze vorm is niveau 3 (omdat er veel afhankelijkheid is tussen de verschillende studenten, en omdat ze vrij worden gelaten qua invulling). De zelfstandigheid is waarschijnlijk niveau 2 voor de meeste studenten, maar niveau 3 voor degene die een lead-rol binnen hun team aannemen.

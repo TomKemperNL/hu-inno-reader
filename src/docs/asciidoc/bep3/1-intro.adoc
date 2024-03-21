@@ -187,6 +187,7 @@ Bij de Publish-Subscribe integratie-wijze meldt je een service dus aan om bepaal
 
 Eenvoudige messaging integraties maken vaak gebruik van Fire & Forget, en zodra er meer & meer services ontstaan evolueert dit vaak naar Publish/Subscribe. Het is uiteraard ook mogelijk om Request/Reply interacties op te zetten met Messaging, maar dat is iets minder gebruikelijk (het is gewoon net iets lastiger qua frameworks & code, dan om in dat soort gevallen een RPC call te doen). Spring-AMQP heeft bijv. een aantal SendAndWaitForReply methodes, maar dat is vaak een beetje zonde, omdat jouw applicatie dan middenin een stukje server-code gaat zitten wachten op een reply. Dat is voor een webserver vaak vragen om performance-problemen.
 
+[#coupling]
 === Coupling
 
 Bij Software Architecture hebben we het gehad over Coupling: hoeveel afhankelijkheid hebben stukken code van elkaar? De koppeling die we daar hebben besproken was primair gericht op compile-time dependencies. Welke andere classes of modules gebruikt een class of module om z'n werk te doen. Dit concept van koppeling kun je breder trekken, naar verschillende soorten koppeling. In deze cursus spelen 3 andere soorten Coupling ook een grote rol:
